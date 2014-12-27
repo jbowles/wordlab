@@ -5,9 +5,9 @@
 package wordlab
 
 import (
-	"encoding/csv"
-	"fmt"
-	"os"
+	"github.com/sjwhitworth/golearn/base"
+	"github.com/sjwhitworth/golearn/knn"
+	"strings"
 )
 
 const (
@@ -31,39 +31,10 @@ type BytePosChar struct {
 	ByteCharacter float64
 }
 
-func Format(word, category, file_path string) *WordBucket {
-	bucket := &WordBucket{
-		Word:     word,
-		Category: category,
-	}
-
-	for pos, chr := range []byte(word) {
-		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
-	}
-	bucket.setFitValue()
-	bucket.csvBucketWriter(file_path)
-	return bucket
-}
-
-// CsvCreatFileWithHeaders creates csv with headers.
-// This is a destructive function as it will overwrite existing files with the same name!
-func CsvCreateFileWithHeaders(force bool, file_path string, headers []string) {
-	file_exists := fileExist(file_path)
-	switch file_exists {
-	case false:
-		if force == false {
-			return
-		}
-	}
-	csvfile, err := os.Create(file_path)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	writer := csv.NewWriter(csvfile)
-	writer.Write(headers)
-	writer.Flush()
-	csvfile.Close()
+func NameFromFilePath(file_path string) string {
+	res1 := strings.Split(file_path, "/")
+	res2 := res1[len(res1)-1]
+	return strings.Split(res2, ".")[0]
 }
 
 func setBytePosChar(position, character float64) BytePosChar {
@@ -78,38 +49,29 @@ func (wb *WordBucket) setFitValue() {
 		chrTotal += bpc.ByteCharacter
 		posTotal += bpc.BytePosition
 	}
-	wb.FitValue = ((posTotal * Eqlzr) / chrTotal)
+	wb.FitValue = ((posTotal * Eqlzr) / chrTotal) // * 100.0 // move 0.0033834892232614887 to 0.3383489223261489
 }
 
-func fileExist(file_path string) bool {
-	_, err := os.OpenFile(file_path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
-	return err == nil
-}
-
-// CsvBucketWriter will append or create file to write out a WordBucket.
-func (wb *WordBucket) csvBucketWriter(file_path string) {
-	csvfile, err := os.OpenFile(file_path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+func InitKnnClassifier(neighbors int, distance, data_file string) (*knn.KNNClassifier, base.FixedDataGrid) {
+	//rawData, err := base.ParseCSVToInstances("../datasets/wordlab_knn_hotel_error_test.csv", true)
+	rawData, err := base.ParseCSVToInstances(data_file, true)
 	if err != nil {
-		fmt.Println(err)
-		return
+		panic(err)
 	}
-	defer csvfile.Close()
 
-	writer := csv.NewWriter(csvfile)
+	var cls = &knn.KNNClassifier{}
 
-	fit_value := fmt.Sprintf("%G", wb.FitValue)
-	bucket := fmt.Sprintf("%v", wb.Bucket)
-	writeErr := writer.Write(
-		[]string{
-			bucket,
-			fit_value,
-			wb.Word,
-			wb.Category,
-		},
-	)
-
-	if writeErr != nil {
-		fmt.Println(writeErr)
+	switch distance {
+	case "euclidean":
+		cls = knn.NewKnnClassifier(distance, neighbors)
+	case "manhattan":
+		cls = knn.NewKnnClassifier(distance, neighbors)
+	default:
+		cls = knn.NewKnnClassifier("euclidean", 12)
 	}
-	writer.Flush()
+
+	_, testData := base.InstancesTrainTestSplit(rawData, 0.05)
+	cls.Fit(rawData)
+
+	return cls, testData
 }
