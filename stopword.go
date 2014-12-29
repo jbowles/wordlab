@@ -7,17 +7,16 @@ import (
 	"os"
 )
 
-type StopWordBucket struct {
+type StopWordList struct {
 	IsStopWord map[string]bool
 	Total      int
 }
 
-func StopWords(file_name string) *StopWordBucket {
+func StopWords(file_name string) *StopWordList {
 	var total_count int
-	swb := &StopWordBucket{
+	swb := &StopWordList{
 		IsStopWord: make(map[string]bool),
 	}
-	//file, err := os.Open("README.md")
 	file, ferr := os.Open(file_name)
 
 	if ferr != nil {
@@ -27,7 +26,6 @@ func StopWords(file_name string) *StopWordBucket {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		//swb.Words = append(swb.Words, []string{scanner.Text(), ""})
 		swb.IsStopWord[scanner.Text()] = true
 		total_count += 1
 	}

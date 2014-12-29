@@ -5,25 +5,44 @@
 package wordlab
 
 import (
+	tkz "github.com/jbowles/nlpt_tkz"
 	"github.com/sjwhitworth/golearn/base"
 	"github.com/sjwhitworth/golearn/knn"
+	"strconv"
 	"strings"
 )
 
+// ByteRangeLimit defines what will be tolerated as a longest sequence of bytes per word.
+// There is not need to capture all bytes of all words as the AggregateByteValue is computed
+// over the whole range of bytes, but having a good order of bytes-per-word is good for classification.
+// Remember: byte ranges are defined by slice indexes... will always be 1+ defined here
 const (
-	Eqlzr = 0.13
+	Eqlzr                   = 0.13
+	ByteRangeWordModelLimit = 12
+	ByteRangeSentModelLimit = 50
 )
 
 var (
 	posTotal float64
 	chrTotal float64
+	seqTotal float64
+	stopList = StopWords("datasets/stopwords/stopwords.txt")
 )
 
 type WordBucket struct {
-	Bucket   []BytePosChar
-	Word     string
-	FitValue float64
-	Category string
+	Bucket              []BytePosChar
+	Word                string
+	AggregagteByteValue float64
+	LabelName           string
+	LabelID             int
+}
+
+type SentenceBucket struct {
+	Bucket              []BytesPosSeq
+	Sentence            string
+	AggregagteByteValue float64
+	LabelName           string
+	LabelID             int
 }
 
 type BytePosChar struct {
@@ -31,10 +50,142 @@ type BytePosChar struct {
 	ByteCharacter float64
 }
 
-func NameFromFilePath(file_path string) string {
-	res1 := strings.Split(file_path, "/")
-	res2 := res1[len(res1)-1]
-	return strings.Split(res2, ".")[0]
+type BytesPosSeq struct {
+	BytesPosition float64
+	BytesSequence []float64
+}
+
+func NewWordBucket(word, labelName string, labelId int) *WordBucket {
+	bucket := &WordBucket{
+		Word:      word,
+		LabelName: labelName,
+		LabelID:   labelId,
+	}
+
+	for pos, chr := range []byte(word) {
+		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
+	}
+	bucket.setAggregateByteValue()
+	return bucket
+}
+
+func NewPredictionWordBucket(word string) *WordBucket {
+	bucket := &WordBucket{
+		Word: word,
+	}
+
+	for pos, chr := range []byte(word) {
+		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
+	}
+	bucket.setAggregateByteValue()
+	return bucket
+}
+
+func NewSentenceBucket(sentence, labelName, tokenizer string, labelId int) *SentenceBucket {
+	bucket := &SentenceBucket{
+		Sentence:  sentence,
+		LabelName: labelName,
+		LabelID:   labelId,
+	}
+
+	tokens, _ := tkz.Tokenize(tokenizer, strings.ToLower(sentence))
+
+	for pos, token := range tokens {
+		if !stopList.IsStopWord[token] {
+			var byteSeq = []float64{}
+			for _, byt := range []byte(token) {
+				byteSeq = append(byteSeq, float64(byt))
+			}
+			bucket.Bucket = append(bucket.Bucket, setBytesPosSeq(float64(pos), byteSeq))
+		}
+	}
+	bucket.setAggregateByteValue()
+	return bucket
+}
+
+func NewPredictionSentenceBucket(sentence, tokenizer string) *SentenceBucket {
+	bucket := &SentenceBucket{
+		Sentence: sentence,
+	}
+
+	tokens, _ := tkz.Tokenize(tokenizer, strings.ToLower(sentence))
+
+	for pos, token := range tokens {
+		if !stopList.IsStopWord[token] {
+			var byteSeq = []float64{}
+			for _, byt := range []byte(token) {
+				byteSeq = append(byteSeq, float64(byt))
+			}
+			bucket.Bucket = append(bucket.Bucket, setBytesPosSeq(float64(pos), byteSeq))
+		}
+	}
+	bucket.setAggregateByteValue()
+	return bucket
+}
+
+// ConcatRuneSlice concatenates two slices of runes.
+// Takes two arguments that must be slices of type String, order of args is not important.
+// Returns a new slice which is the result of copying the 2 slices passed in a args.
+//
+//  slice_one := []rune("this, that, other")
+//  slice_two := []rune("when, where, why")
+//  ConcatRuneSlice(slice_one,slice_two)
+func ConcatStringSlice(slice1, slice2 []string) []string {
+	new_slice := make([]string, len(slice1)+len(slice2))
+	copy(new_slice, slice1)
+	copy(new_slice[len(slice1):], slice2)
+	return new_slice
+}
+
+// test that count is under limit, or if limit reached right number of zeros added over threshold.
+func (wb *WordBucket) BytePosCharToString() []string {
+	size := len(wb.Bucket)
+	base := []string{}
+	for _, i := range wb.Bucket {
+		base = append(base, strconv.Itoa(int(i.ByteCharacter)))
+	}
+	if size > ByteRangeWordModelLimit {
+		return base[0:ByteRangeWordModelLimit]
+	}
+	zeros := (ByteRangeWordModelLimit - size)
+	ztemp := []string{}
+	for i := 0; i < zeros; i++ {
+		ztemp = append(ztemp, "0")
+	}
+	return ConcatStringSlice(
+		base,
+		makeZeros(ByteRangeWordModelLimit, size),
+	)
+}
+
+// test that count is under limit, or if limit reached right number of zeros added over threshold.
+func (sb *SentenceBucket) BytePosSeqToString() (base []string) {
+	size := 0
+	tmp := []string{}
+	for _, bps := range sb.Bucket {
+		size += len(bps.BytesSequence)
+		for _, i := range bps.BytesSequence {
+			tmp = append(tmp, strconv.Itoa(int(i)))
+		}
+		base = tmp
+	}
+	if len(base) > ByteRangeSentModelLimit {
+		base = base[0:ByteRangeSentModelLimit]
+	}
+
+	base = ConcatStringSlice(
+		base,
+		makeZeros(ByteRangeSentModelLimit, size),
+	)
+	return
+}
+
+func makeZeros(limit, sliceSize int) (ztemp []string) {
+	zeros := (limit - sliceSize)
+	for i := 0; i < zeros; i++ {
+		ztemp = append(ztemp, "0")
+	}
+	return
 }
 
 func setBytePosChar(position, character float64) BytePosChar {
@@ -44,16 +195,32 @@ func setBytePosChar(position, character float64) BytePosChar {
 	}
 }
 
-func (wb *WordBucket) setFitValue() {
+func setBytesPosSeq(position float64, sequence []float64) BytesPosSeq {
+	return BytesPosSeq{
+		BytesPosition: position,
+		BytesSequence: sequence,
+	}
+}
+
+func (wb *WordBucket) setAggregateByteValue() {
 	for _, bpc := range wb.Bucket {
 		chrTotal += bpc.ByteCharacter
 		posTotal += bpc.BytePosition
 	}
-	wb.FitValue = ((posTotal * Eqlzr) / chrTotal) // * 100.0 // move 0.0033834892232614887 to 0.3383489223261489
+	wb.AggregagteByteValue = ((posTotal * Eqlzr) / chrTotal)
 }
 
-func InitKnnClassifier(neighbors int, distance, data_file string) (*knn.KNNClassifier, base.FixedDataGrid) {
-	//rawData, err := base.ParseCSVToInstances("../datasets/wordlab_knn_hotel_error_test.csv", true)
+func (sb *SentenceBucket) setAggregateByteValue() {
+	for _, bps := range sb.Bucket {
+		for _, seq := range bps.BytesSequence {
+			seqTotal += seq
+		}
+		posTotal += bps.BytesPosition
+	}
+	sb.AggregagteByteValue = ((posTotal * Eqlzr) / seqTotal)
+}
+
+func InitKnnClassifier(neighbors int, distance, data_file string) *knn.KNNClassifier {
 	rawData, err := base.ParseCSVToInstances(data_file, true)
 	if err != nil {
 		panic(err)
@@ -67,11 +234,10 @@ func InitKnnClassifier(neighbors int, distance, data_file string) (*knn.KNNClass
 	case "manhattan":
 		cls = knn.NewKnnClassifier(distance, neighbors)
 	default:
-		cls = knn.NewKnnClassifier("euclidean", 12)
+		cls = knn.NewKnnClassifier("euclidean", 2)
 	}
 
-	_, testData := base.InstancesTrainTestSplit(rawData, 0.05)
 	cls.Fit(rawData)
 
-	return cls, testData
+	return cls
 }

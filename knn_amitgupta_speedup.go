@@ -3,9 +3,6 @@
  */
 package wordlab
 
-/*
-package main
-
 import (
 	"bytes"
 	"fmt"
@@ -15,12 +12,12 @@ import (
 	"strconv"
 )
 
-type LabelWithFeatures struct {
+type AmitKnnLabelWithFeatures struct {
 	Label    []byte
 	Features []float32
 }
 
-func NewLabelWithFeatures(parsedLine [][]byte) LabelWithFeatures {
+func NewAmitKnnLabelWithFeatures(parsedLine [][]byte) AmitKnnLabelWithFeatures {
 	label := parsedLine[0]
 	features := make([]float32, len(parsedLine)-1)
 
@@ -33,7 +30,7 @@ func NewLabelWithFeatures(parsedLine [][]byte) LabelWithFeatures {
 		features[i-1] = byteSliceTofloat32(feature)
 	}
 
-	return LabelWithFeatures{label, features}
+	return AmitKnnLabelWithFeatures{label, features}
 }
 
 var newline = []byte("\n")
@@ -44,12 +41,12 @@ func byteSliceTofloat32(b []byte) float32 {
 	return float32(x)
 }
 
-func parseCSVFile(filePath string) []LabelWithFeatures {
+func parseCSVFile(filePath string) []AmitKnnLabelWithFeatures {
 	fileContent, _ := ioutil.ReadFile(filePath)
 	lines := bytes.Split(fileContent, newline)
 	numRows := len(lines)
 
-	labelsWithFeatures := make([]LabelWithFeatures, numRows-2)
+	labelsWithFeatures := make([]AmitKnnLabelWithFeatures, numRows-2)
 
 	for i, line := range lines {
 		// skip headers
@@ -57,7 +54,7 @@ func parseCSVFile(filePath string) []LabelWithFeatures {
 			continue
 		}
 
-		labelsWithFeatures[i-1] = NewLabelWithFeatures(bytes.Split(line, comma))
+		labelsWithFeatures[i-1] = NewAmitKnnLabelWithFeatures(bytes.Split(line, comma))
 	}
 
 	return labelsWithFeatures
@@ -81,10 +78,9 @@ func squareDistanceWithBailout(features1, features2 []float32, bailout float32) 
 	return
 }
 
-//var trainingSample = parseCSVFile("datasets/trainingsample.csv")
-var trainingSample = parseCSVFile("datasets/wordlab_amit_hotel_error_train.csv")
-
-func classify(features []float32) (label []byte) {
+func AmitClassify(features []float32) (label []byte) {
+	//var trainingSample = parseCSVFile("datasets/trainingsample.csv")
+	var trainingSample = parseCSVFile("datasets/wordlab_amit_hotel_error_train.csv")
 	label = trainingSample[0].Label
 	d := squareDistanceWithBailout(features, trainingSample[0].Features, math.MaxFloat32)
 
@@ -100,7 +96,7 @@ func classify(features []float32) (label []byte) {
 	return
 }
 
-func main() {
+func AmitKnnValidate() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	//validationSample := parseCSVFile("datasets/validationsample.csv")
@@ -110,8 +106,8 @@ func main() {
 	successChannel := make(chan float32)
 
 	for _, test := range validationSample {
-		go func(t LabelWithFeatures) {
-			if string(t.Label) == string(classify(t.Features)) {
+		go func(t AmitKnnLabelWithFeatures) {
+			if string(t.Label) == string(AmitClassify(t.Features)) {
 				successChannel <- 1
 			} else {
 				successChannel <- 0
@@ -125,4 +121,3 @@ func main() {
 
 	fmt.Println(float32(totalCorrect) / float32(len(validationSample)))
 }
-*/
