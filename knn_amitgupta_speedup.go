@@ -78,10 +78,11 @@ func squareDistanceWithBailout(features1, features2 []float32, bailout float32) 
 	return
 }
 
+var trainingSample = parseCSVFile("datasets/wordlab_hotel_error_sents_labelfirst_train.csv")
+
 func AmitClassify(features []float32) (label []byte) {
 	//var trainingSample = parseCSVFile("datasets/trainingsample.csv")
 	//var trainingSample = parseCSVFile("datasets/wordlab_amit_hotel_error_train.csv")
-	var trainingSample = parseCSVFile("datasets/wordlab_hotel_error_sents_labelfirst_train.csv")
 	label = trainingSample[0].Label
 	d := squareDistanceWithBailout(features, trainingSample[0].Features, math.MaxFloat32)
 
