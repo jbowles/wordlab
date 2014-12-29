@@ -3,7 +3,6 @@ package wordlab
 import (
 	"bufio"
 	"fmt"
-
 	"os"
 )
 

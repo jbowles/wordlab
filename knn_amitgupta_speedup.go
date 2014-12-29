@@ -80,7 +80,8 @@ func squareDistanceWithBailout(features1, features2 []float32, bailout float32) 
 
 func AmitClassify(features []float32) (label []byte) {
 	//var trainingSample = parseCSVFile("datasets/trainingsample.csv")
-	var trainingSample = parseCSVFile("datasets/wordlab_amit_hotel_error_train.csv")
+	//var trainingSample = parseCSVFile("datasets/wordlab_amit_hotel_error_train.csv")
+	var trainingSample = parseCSVFile("datasets/wordlab_hotel_error_sents_labelfirst_train.csv")
 	label = trainingSample[0].Label
 	d := squareDistanceWithBailout(features, trainingSample[0].Features, math.MaxFloat32)
 
@@ -100,7 +101,8 @@ func AmitKnnValidate() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	//validationSample := parseCSVFile("datasets/validationsample.csv")
-	var validationSample = parseCSVFile("datasets/wordlab_amit_hotel_error_validation.csv")
+	//var validationSample = parseCSVFile("datasets/wordlab_amit_hotel_error_validation.csv")
+	var validationSample = parseCSVFile("datasets/validate.csv")
 
 	var totalCorrect float32 = 0
 	successChannel := make(chan float32)
