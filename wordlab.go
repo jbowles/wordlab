@@ -26,7 +26,7 @@ var (
 	posTotal float64
 	chrTotal float64
 	seqTotal float64
-	stopList = StopWords("datasets/stopwords/stopwords.txt")
+	stopList = StopWords("/usr/local/mygo/src/github.com/jbowles/wordlab/datasets/stopwords/stopwords.txt")
 )
 
 type WordBucket struct {
