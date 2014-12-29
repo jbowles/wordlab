@@ -137,6 +137,13 @@ func ConcatStringSlice(slice1, slice2 []string) []string {
 	return new_slice
 }
 
+func ConcatFloat32Slice(slice1, slice2 []float32) []float32 {
+	new_slice := make([]float32, len(slice1)+len(slice2))
+	copy(new_slice, slice1)
+	copy(new_slice[len(slice1):], slice2)
+	return new_slice
+}
+
 // test that count is under limit, or if limit reached right number of zeros added over threshold.
 func (wb *WordBucket) BytePosCharToString() []string {
 	size := len(wb.Bucket)
@@ -154,7 +161,7 @@ func (wb *WordBucket) BytePosCharToString() []string {
 	}
 	return ConcatStringSlice(
 		base,
-		makeZeros(ByteRangeWordModelLimit, size),
+		makeZerosString(ByteRangeWordModelLimit, size),
 	)
 }
 
@@ -175,15 +182,45 @@ func (sb *SentenceBucket) BytePosSeqToString() (base []string) {
 
 	base = ConcatStringSlice(
 		base,
-		makeZeros(ByteRangeSentModelLimit, size),
+		makeZerosString(ByteRangeSentModelLimit, size),
 	)
 	return
 }
 
-func makeZeros(limit, sliceSize int) (ztemp []string) {
+// test that count is under limit, or if limit reached right number of zeros added over threshold.
+func (sb *SentenceBucket) BytePosSeqToFloat32() (base []float32) {
+	size := 0
+	tmp := []float32{}
+	for _, bps := range sb.Bucket {
+		size += len(bps.BytesSequence)
+		for _, i := range bps.BytesSequence {
+			tmp = append(tmp, float32(i))
+		}
+		base = tmp
+	}
+	if len(base) > ByteRangeSentModelLimit {
+		base = base[0:ByteRangeSentModelLimit]
+	}
+
+	base = ConcatFloat32Slice(
+		base,
+		makeZerosFloat32(ByteRangeSentModelLimit, size),
+	)
+	return
+}
+
+func makeZerosString(limit, sliceSize int) (ztemp []string) {
 	zeros := (limit - sliceSize)
 	for i := 0; i < zeros; i++ {
 		ztemp = append(ztemp, "0")
+	}
+	return
+}
+
+func makeZerosFloat32(limit, sliceSize int) (ztemp []float32) {
+	zeros := (limit - sliceSize)
+	for i := 0; i < zeros; i++ {
+		ztemp = append(ztemp, float32(0))
 	}
 	return
 }
