@@ -39,31 +39,54 @@ var HotelErrorNameTable = map[string]int{
 	"unexpected_response_error": UnexpectID,
 }
 
-var wordModelHeaders = CreateByteRangeHeaders(ByteRangeWordModelLimit)
-var sentModelHeaders = CreateByteRangeHeaders(ByteRangeSentModelLimit)
+func AveragedLabelId() int {
+	sum := int(0)
+	for id, _ := range HotelErrorIDTable {
+		sum += id
+	}
+	return (sum / (len(HotelErrorIDTable) * len(HotelErrorIDTable)))
+}
 
-func BuildHotelProviderDataKnn(root_errorfp, root_datafp string) {
-	new_word_hdrs := append(wordModelHeaders, "Label")
-	new_sent_hdrs := append(sentModelHeaders, "Label")
-	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_words_labellast_train.csv"), new_word_hdrs)
-	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_sents_labellast_train.csv"), new_sent_hdrs)
+var wordModelHeaders = CreateByteRangeHeaders(ByteRangeWordModelLimit)
+var SentModelHeaders = CreateByteRangeHeaders(ByteRangeSentModelLimit)
+
+func BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp string) {
+	new_word_hdrs := append(wordModelHeaders, "BloomFilter")
+	new_word_hdrs = append(new_word_hdrs, "LabelName")
+
+	new_sent_hdrs := append(SentModelHeaders, "BloomFilter")
+	new_sent_hdrs = append(new_sent_hdrs, "LabelName")
+
+	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_words_labelnamelast_train.csv"), new_word_hdrs)
+	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_sents_labelnamelast_train.csv"), new_sent_hdrs)
 
 	for id, table := range HotelErrorIDTable {
-		wmodel := &WordModelLabelLast{
+		// add word label name last
+		wmodel := &WordModel{
 			InputFilePath:  root_errorfp + table[1],
-			OutputFilePath: root_datafp + "wordlab_hotel_error_words_labellast_train.csv",
+			OutputFilePath: root_datafp + "wordlab_hotel_error_words_labelnamelast_train.csv",
 			LabelName:      table[0],
 			Tokenizer:      "bukt",
 			LabelID:        id,
 			ForceOverwrite: true,
+			LabelFirst:     false,
+			LabelNameFirst: false,
+			AddLabelName:   true,
+			AddLabelID:     false,
 		}
-		smodel := &SentenceModelLabelLast{
+
+		// add sentence label name last
+		smodel := &SentenceModel{
 			InputFilePath:  root_errorfp + table[1],
-			OutputFilePath: root_datafp + "wordlab_hotel_error_sents_labellast_train.csv",
+			OutputFilePath: root_datafp + "wordlab_hotel_error_sents_labelnamelast_train.csv",
 			LabelName:      table[0],
 			Tokenizer:      "bukt",
 			LabelID:        id,
 			ForceOverwrite: true,
+			LabelFirst:     false,
+			LabelNameFirst: false,
+			AddLabelName:   true,
+			AddLabelID:     false,
 		}
 
 		smodel.ParseInputWriteOut()
@@ -71,28 +94,34 @@ func BuildHotelProviderDataKnn(root_errorfp, root_datafp string) {
 	}
 }
 
-func BuildHotelProviderDataKnnAmit(root_errorfp, root_datafp string) {
-	new_word_hdrs := ConcatStringSlice([]string{"Label"}, wordModelHeaders)
-	new_sent_hdrs := ConcatStringSlice([]string{"Label"}, sentModelHeaders)
-	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_words_labelfirst_train.csv"), new_word_hdrs)
-	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_sents_labelfirst_train.csv"), new_sent_hdrs)
+func BuildHotelProviderDataKnnLabelIdFirst(root_errorfp, root_datafp string) {
+	new_idword_hdrs := ConcatStringSlice([]string{"LabelId"}, wordModelHeaders)
+	new_idsent_hdrs := ConcatStringSlice([]string{"LabelId"}, SentModelHeaders)
+	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_words_labelidfirst_train.csv"), new_idword_hdrs)
+	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_sents_labelidfirst_train.csv"), new_idsent_hdrs)
 
 	for id, table := range HotelErrorIDTable {
-		wmodel := &WordModelLabelFirst{
+		wmodel := &WordModel{
 			InputFilePath:  root_errorfp + table[1],
-			OutputFilePath: root_datafp + "wordlab_hotel_error_words_labelfirst_train.csv",
+			OutputFilePath: root_datafp + "wordlab_hotel_error_words_labelidfirst_train.csv",
 			LabelName:      table[0],
 			Tokenizer:      "bukt",
 			LabelID:        id,
 			ForceOverwrite: true,
+			LabelFirst:     true,
+			AddLabelName:   false,
+			LabelNameFirst: false,
 		}
-		smodel := &SentenceModelLabelFirst{
+		smodel := &SentenceModel{
 			InputFilePath:  root_errorfp + table[1],
-			OutputFilePath: root_datafp + "wordlab_hotel_error_sents_labelfirst_train.csv",
+			OutputFilePath: root_datafp + "wordlab_hotel_error_sents_labelidfirst_train.csv",
 			LabelName:      table[0],
 			Tokenizer:      "bukt",
 			LabelID:        id,
 			ForceOverwrite: true,
+			LabelFirst:     true,
+			AddLabelName:   false,
+			LabelNameFirst: false,
 		}
 
 		smodel.ParseInputWriteOut()

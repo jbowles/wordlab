@@ -6,8 +6,6 @@ package wordlab
 
 import (
 	tkz "github.com/jbowles/nlpt_tkz"
-	"github.com/sjwhitworth/golearn/base"
-	"github.com/sjwhitworth/golearn/knn"
 	"strconv"
 	"strings"
 )
@@ -17,15 +15,15 @@ import (
 // over the whole range of bytes, but having a good order of bytes-per-word is good for classification.
 // Remember: byte ranges are defined by slice indexes... will always be 1+ defined here
 const (
-	Eqlzr                   = 0.13
 	ByteRangeWordModelLimit = 12
-	ByteRangeSentModelLimit = 50
+	ByteRangeSentModelLimit = 20
 )
 
+type PositionTotal float64
+type CharacterTotal float64
+type SequenceTotal float64
+
 var (
-	posTotal float64
-	chrTotal float64
-	seqTotal float64
 	stopList = StopWords("/usr/local/mygo/src/github.com/jbowles/wordlab/datasets/stopwords/stopwords.txt")
 )
 
@@ -35,6 +33,7 @@ type WordBucket struct {
 	AggregagteByteValue float64
 	LabelName           string
 	LabelID             int
+	BloomFilter         int
 }
 
 type SentenceBucket struct {
@@ -43,6 +42,7 @@ type SentenceBucket struct {
 	AggregagteByteValue float64
 	LabelName           string
 	LabelID             int
+	BloomFilter         int
 }
 
 type BytePosChar struct {
@@ -57,9 +57,10 @@ type BytesPosSeq struct {
 
 func NewWordBucket(word, labelName string, labelId int) *WordBucket {
 	bucket := &WordBucket{
-		Word:      word,
-		LabelName: labelName,
-		LabelID:   labelId,
+		Word:        word,
+		LabelName:   labelName,
+		LabelID:     labelId,
+		BloomFilter: ComputeBloomFilter(word),
 	}
 
 	for pos, chr := range []byte(word) {
@@ -83,9 +84,10 @@ func NewPredictionWordBucket(word string) *WordBucket {
 
 func NewSentenceBucket(sentence, labelName, tokenizer string, labelId int) *SentenceBucket {
 	bucket := &SentenceBucket{
-		Sentence:  sentence,
-		LabelName: labelName,
-		LabelID:   labelId,
+		Sentence:    sentence,
+		LabelName:   labelName,
+		LabelID:     labelId,
+		BloomFilter: ComputeBloomFilter(sentence),
 	}
 
 	tokens, _ := tkz.Tokenize(tokenizer, strings.ToLower(sentence))
@@ -240,41 +242,19 @@ func setBytesPosSeq(position float64, sequence []float64) BytesPosSeq {
 }
 
 func (wb *WordBucket) setAggregateByteValue() {
+	var chrTotal float64
 	for _, bpc := range wb.Bucket {
-		chrTotal += bpc.ByteCharacter
-		posTotal += bpc.BytePosition
+		chrTotal += (bpc.ByteCharacter + bpc.BytePosition)
 	}
-	wb.AggregagteByteValue = ((posTotal * Eqlzr) / chrTotal)
+	wb.AggregagteByteValue = chrTotal / 0.13
 }
 
 func (sb *SentenceBucket) setAggregateByteValue() {
+	var seqTotal float64
 	for _, bps := range sb.Bucket {
-		for _, seq := range bps.BytesSequence {
-			seqTotal += seq
+		for idx, seq := range bps.BytesSequence {
+			seqTotal += (seq + float64(idx))
 		}
-		posTotal += bps.BytesPosition
 	}
-	sb.AggregagteByteValue = ((posTotal * Eqlzr) / seqTotal)
-}
-
-func InitKnnClassifier(neighbors int, distance, data_file string) *knn.KNNClassifier {
-	rawData, err := base.ParseCSVToInstances(data_file, true)
-	if err != nil {
-		panic(err)
-	}
-
-	var cls = &knn.KNNClassifier{}
-
-	switch distance {
-	case "euclidean":
-		cls = knn.NewKnnClassifier(distance, neighbors)
-	case "manhattan":
-		cls = knn.NewKnnClassifier(distance, neighbors)
-	default:
-		cls = knn.NewKnnClassifier("euclidean", 2)
-	}
-
-	cls.Fit(rawData)
-
-	return cls
+	sb.AggregagteByteValue = seqTotal / 0.13
 }

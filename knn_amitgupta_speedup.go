@@ -1,6 +1,7 @@
+package wordlab
+
 /*
 * toying around with https://github.com/amitkgupta/nearest_neighbour/blob/master/golang-k-nn-speedup.go
- */
 package wordlab
 
 import (
@@ -124,3 +125,4 @@ func AmitKnnValidate() {
 
 	fmt.Println(float32(totalCorrect) / float32(len(validationSample)))
 }
+*/

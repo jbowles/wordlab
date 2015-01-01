@@ -15,46 +15,36 @@ type CSVFormat interface {
 	WriteAttributes()
 }
 
-type WordModelLabelFirst struct {
+type WordModel struct {
 	InputFilePath  string
 	OutputFilePath string
 	LabelName      string
 	Tokenizer      string
 	LabelID        int
 	ForceOverwrite bool
+	LabelFirst     bool
+	LabelNameFirst bool
+	AddLabelName   bool
+	AddLabelID     bool
 }
 
-type WordModelLabelLast struct {
+type SentenceModel struct {
 	InputFilePath  string
 	OutputFilePath string
 	LabelName      string
 	Tokenizer      string
 	LabelID        int
 	ForceOverwrite bool
-}
-
-type SentenceModelLabelFirst struct {
-	InputFilePath  string
-	OutputFilePath string
-	LabelName      string
-	Tokenizer      string
-	LabelID        int
-	ForceOverwrite bool
-}
-
-type SentenceModelLabelLast struct {
-	InputFilePath  string
-	OutputFilePath string
-	LabelName      string
-	Tokenizer      string
-	LabelID        int
-	ForceOverwrite bool
+	LabelFirst     bool
+	LabelNameFirst bool
+	AddLabelName   bool
+	AddLabelID     bool
 }
 
 // SentenceModelLabelLast ParseInputWriteOut() does not need tokenizer as the tokenization is done at the time
 // of creating NewSentenceBucket and computing the byte sequence ranges and aggregate byte values
-func (smLast SentenceModelLabelLast) ParseInputWriteOut() {
-	csvFile, err := os.Open(smLast.InputFilePath)
+func (sm SentenceModel) ParseInputWriteOut() {
+	csvFile, err := os.Open(sm.InputFilePath)
 	defer csvFile.Close()
 	if err != nil {
 		panic(err)
@@ -70,62 +60,49 @@ func (smLast SentenceModelLabelLast) ParseInputWriteOut() {
 			panic(err)
 		}
 		for _, row := range fields {
-			smLast.WriteAttributes(NewSentenceBucket(row, smLast.LabelName, smLast.Tokenizer, smLast.LabelID))
+			sm.WriteAttributes(
+				NewSentenceBucket(
+					row,
+					sm.LabelName,
+					sm.Tokenizer,
+					sm.LabelID,
+				),
+			)
 		}
 	}
 }
 
-// tokenizer can be 'bukt', 'lex'
-func (smFirst SentenceModelLabelFirst) ParseInputWriteOut() {
-	csvFile, err := os.Open(smFirst.InputFilePath)
-	defer csvFile.Close()
-	if err != nil {
-		panic(err)
-	}
-	csvReader := csv.NewReader(csvFile)
-	csvReader.TrimLeadingSpace = true
-	csvReader.FieldsPerRecord = 1
-	for {
-		fields, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			panic(err)
-		}
-		for _, row := range fields {
-			smFirst.WriteAttributes(NewSentenceBucket(row, smFirst.LabelName, smFirst.Tokenizer, smFirst.LabelID))
-		}
-	}
-}
-
-func (smLast SentenceModelLabelLast) WriteAttributes(sb *SentenceBucket) {
-	csvfile, writer := fileWriter(smLast.OutputFilePath)
+func (sm SentenceModel) WriteAttributes(sb *SentenceBucket) {
+	csvfile, writer := fileWriter(sm.OutputFilePath)
 	defer csvfile.Close()
 
-	// need label to be in last position
 	aggr_byte_value := fmt.Sprintf("%G", sb.AggregagteByteValue) //0.003038961038961039
-	label := fmt.Sprintf("%d", sb.LabelID)                       // 3345
-	bucketWrite := sb.BytePosSeqToString()
+	labelid := fmt.Sprintf("%d", sb.LabelID)                     // 3345
+	bloom := fmt.Sprintf("%d", sb.BloomFilter)                   //
+
+	var bucketWrite []string
+	if sm.LabelFirst {
+		if sm.LabelNameFirst {
+			bucketWrite = ConcatStringSlice([]string{sm.LabelName}, sb.BytePosSeqToString())
+		}
+		bucketWrite = ConcatStringSlice([]string{labelid}, sb.BytePosSeqToString())
+	} else {
+		bucketWrite = sb.BytePosSeqToString()
+	}
+
 	bucketWrite = append(bucketWrite, aggr_byte_value)
-	bucketWrite = append(bucketWrite, label)
-	writeErr := writer.Write(bucketWrite)
+	bucketWrite = append(bucketWrite, bloom)
 
-	if writeErr != nil {
-		fmt.Println(writeErr)
+	// IF need label to be in last position
+	// Add label id and name at n-1 and n position
+	if sm.AddLabelName && !sm.LabelFirst {
+		// don't write labelid if prediction becomes too difficult
+		//bucketWrite = append(bucketWrite, labelid)
+		bucketWrite = append(bucketWrite, sm.LabelName)
+	} else if sm.AddLabelID {
+		bucketWrite = append(bucketWrite, labelid)
 	}
-	writer.Flush()
-}
 
-func (smFirst SentenceModelLabelFirst) WriteAttributes(sb *SentenceBucket) {
-	csvfile, writer := fileWriter(smFirst.OutputFilePath)
-	defer csvfile.Close()
-
-	label := fmt.Sprintf("%d", sb.LabelID)                  // 3345
-	byte_value := fmt.Sprintf("%G", sb.AggregagteByteValue) //0.003038961038961039
-
-	// need label to be in first position
-	bucketWrite := ConcatStringSlice([]string{label}, sb.BytePosSeqToString())
-	bucketWrite = append(bucketWrite, byte_value)
 	writeErr := writer.Write(bucketWrite)
 
 	if writeErr != nil {
@@ -135,8 +112,8 @@ func (smFirst SentenceModelLabelFirst) WriteAttributes(sb *SentenceBucket) {
 }
 
 // tokenizer can be 'bukt', 'lex'
-func (wmLast WordModelLabelLast) ParseInputWriteOut() {
-	csvFile, err := os.Open(wmLast.InputFilePath)
+func (wm WordModel) ParseInputWriteOut() {
+	csvFile, err := os.Open(wm.InputFilePath)
 	defer csvFile.Close()
 	if err != nil {
 		panic(err)
@@ -152,74 +129,47 @@ func (wmLast WordModelLabelLast) ParseInputWriteOut() {
 			panic(err)
 		}
 		for _, row := range fields {
-			tokens, _ := tkz.Tokenize(wmLast.Tokenizer, strings.ToLower(row))
+			tokens, _ := tkz.Tokenize(wm.Tokenizer, strings.ToLower(row))
 			for _, token := range tokens {
 				if !stopList.IsStopWord[token] {
-					//bucket := NewWordBucket(token, wmLast.LabelName, category_id)
-					wmLast.WriteAttributes(NewWordBucket(token, wmLast.LabelName, wmLast.LabelID))
+					wm.WriteAttributes(NewWordBucket(token, wm.LabelName, wm.LabelID))
 				}
 			}
 		}
 	}
 }
 
-// tokenizer can be 'bukt', 'lex'
-func (wmFirst WordModelLabelFirst) ParseInputWriteOut() {
-	csvFile, err := os.Open(wmFirst.InputFilePath)
-	defer csvFile.Close()
-	if err != nil {
-		panic(err)
-	}
-	csvReader := csv.NewReader(csvFile)
-	csvReader.TrimLeadingSpace = true
-	csvReader.FieldsPerRecord = 1
-	for {
-		fields, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			panic(err)
-		}
-		for _, row := range fields {
-			tokens, _ := tkz.Tokenize(wmFirst.Tokenizer, strings.ToLower(row))
-			for _, token := range tokens {
-				if !stopList.IsStopWord[token] {
-					//bucket := NewWordBucket(token, wmFirst.LabelName, category_id)
-					wmFirst.WriteAttributes(NewWordBucket(token, wmFirst.LabelName, wmFirst.LabelID))
-				}
-			}
-		}
-	}
-}
-
-func (wmLast WordModelLabelLast) WriteAttributes(wb *WordBucket) {
-	csvfile, writer := fileWriter(wmLast.OutputFilePath)
+func (wm WordModel) WriteAttributes(wb *WordBucket) {
+	csvfile, writer := fileWriter(wm.OutputFilePath)
 	defer csvfile.Close()
 
-	// need label to be in last position
 	aggr_byte_value := fmt.Sprintf("%G", wb.AggregagteByteValue) //0.003038961038961039
-	label := fmt.Sprintf("%d", wb.LabelID)                       // 3345
-	bucketWrite := wb.BytePosCharToString()
-	bucketWrite = append(bucketWrite, aggr_byte_value)
-	bucketWrite = append(bucketWrite, label)
-	writeErr := writer.Write(bucketWrite)
+	labelid := fmt.Sprintf("%d", wm.LabelID)                     // 3345
+	bloom := fmt.Sprintf("%d", wb.BloomFilter)                   //
 
-	if writeErr != nil {
-		fmt.Println(writeErr)
+	var bucketWrite []string
+	if wm.LabelFirst {
+		if wm.LabelNameFirst {
+			bucketWrite = ConcatStringSlice([]string{wm.LabelName}, wb.BytePosCharToString())
+		}
+		bucketWrite = ConcatStringSlice([]string{labelid}, wb.BytePosCharToString())
+	} else {
+		bucketWrite = wb.BytePosCharToString()
 	}
-	writer.Flush()
-}
 
-func (wmFirst WordModelLabelFirst) WriteAttributes(wb *WordBucket) {
-	csvfile, writer := fileWriter(wmFirst.OutputFilePath)
-	defer csvfile.Close()
+	bucketWrite = append(bucketWrite, aggr_byte_value)
+	bucketWrite = append(bucketWrite, bloom)
 
-	label := fmt.Sprintf("%d", wb.LabelID)                  // 3345
-	byte_value := fmt.Sprintf("%G", wb.AggregagteByteValue) //0.003038961038961039
+	// IF need label to be in last position
+	// Add label id and name at n-1 and n position
+	if wm.AddLabelName && !wm.LabelFirst {
+		// don't write labelid if prediction becomes too difficult
+		//bucketWrite = append(bucketWrite, labelid)
+		bucketWrite = append(bucketWrite, wm.LabelName)
+	} else if wm.AddLabelID {
+		bucketWrite = append(bucketWrite, labelid)
+	}
 
-	// need label to be in first position
-	bucketWrite := ConcatStringSlice([]string{label}, wb.BytePosCharToString())
-	bucketWrite = append(bucketWrite, byte_value)
 	writeErr := writer.Write(bucketWrite)
 
 	if writeErr != nil {
