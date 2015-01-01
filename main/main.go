@@ -32,10 +32,13 @@ func main() {
 			fmt.Printf("sent bucket %v\n", res)
 	*/
 	//amitClassify()
-	HotelData()
+	//HotelData()
 	//makeAttrs()
 	//newInstance()
 	//makePrediction()
+	for k, v := range wordlab.StopWords("default").IsStopWord {
+		fmt.Printf("%v : %v\n", k, v)
+	}
 }
 
 func printHotelTable() {
