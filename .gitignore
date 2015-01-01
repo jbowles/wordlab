@@ -3,3 +3,4 @@
 *.swa
 .DS_Store
 *.csv
+datasets/*.csv

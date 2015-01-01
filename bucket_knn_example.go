@@ -51,11 +51,9 @@ var wordModelHeaders = CreateByteRangeHeaders(ByteRangeWordModelLimit)
 var SentModelHeaders = CreateByteRangeHeaders(ByteRangeSentModelLimit)
 
 func BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp string) {
-	new_word_hdrs := append(wordModelHeaders, "BloomFilter")
-	new_word_hdrs = append(new_word_hdrs, "LabelName")
+	new_word_hdrs := append(wordModelHeaders, "labelname")
 
-	new_sent_hdrs := append(SentModelHeaders, "BloomFilter")
-	new_sent_hdrs = append(new_sent_hdrs, "LabelName")
+	new_sent_hdrs := append(SentModelHeaders, "lablename")
 
 	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_bucket_hotel_error_words_labelnamelast_train.csv"), new_word_hdrs)
 	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_bucket_hotel_error_sents_labelnamelast_train.csv"), new_sent_hdrs)
@@ -64,7 +62,7 @@ func BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp string) {
 		// add word label name last
 		wmodel := &WordModel{
 			InputFilePath:  root_errorfp + table[1],
-			OutputFilePath: root_datafp + "wordlab_hotel_error_words_labelnamelast_train.csv",
+			OutputFilePath: root_datafp + "wordlab_bucket_hotel_error_words_labelnamelast_train.csv",
 			LabelName:      table[0],
 			Tokenizer:      "bukt",
 			LabelID:        id,
@@ -78,7 +76,7 @@ func BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp string) {
 		// add sentence label name last
 		smodel := &SentenceModel{
 			InputFilePath:  root_errorfp + table[1],
-			OutputFilePath: root_datafp + "wordlab_hotel_error_sents_labelnamelast_train.csv",
+			OutputFilePath: root_datafp + "wordlab_bucket_hotel_error_sents_labelnamelast_train.csv",
 			LabelName:      table[0],
 			Tokenizer:      "bukt",
 			LabelID:        id,
