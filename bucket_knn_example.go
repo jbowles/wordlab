@@ -57,8 +57,8 @@ func BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp string) {
 	new_sent_hdrs := append(SentModelHeaders, "BloomFilter")
 	new_sent_hdrs = append(new_sent_hdrs, "LabelName")
 
-	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_words_labelnamelast_train.csv"), new_word_hdrs)
-	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_sents_labelnamelast_train.csv"), new_sent_hdrs)
+	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_bucket_hotel_error_words_labelnamelast_train.csv"), new_word_hdrs)
+	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_bucket_hotel_error_sents_labelnamelast_train.csv"), new_sent_hdrs)
 
 	for id, table := range HotelErrorIDTable {
 		// add word label name last

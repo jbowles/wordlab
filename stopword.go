@@ -12,6 +12,10 @@ type StopWordList struct {
 }
 
 func StopWords(file_name string) *StopWordList {
+	switch file_name {
+	case "default":
+		file_name = "datasets/stopwords/stopwords.txt"
+	}
 	var total_count int
 	swb := &StopWordList{
 		IsStopWord: make(map[string]bool),
