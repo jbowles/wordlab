@@ -3,44 +3,40 @@ package main
 import (
 	"fmt"
 	"github.com/jbowles/wordlab"
+	"runtime"
+	"time"
 	//"strings"
 	//tkz "github.com/jbowles/nlpt_tkz"
-	"github.com/sjwhitworth/golearn/base"
-	"github.com/sjwhitworth/golearn/evaluation"
-	"github.com/sjwhitworth/golearn/knn"
+	//"github.com/sjwhitworth/golearn/base"
+	//"github.com/sjwhitworth/golearn/evaluation"
+	//"github.com/sjwhitworth/golearn/knn"
 	//"strconv"
 )
 
 func main() {
+	//pipeFile()
+	pipeDir()
+}
 
-	/*
-		sent := "Payment Failure happened. PAYMENT_FAILURE com.orbitz.tbs.model.txn.PaymentException: Bad Auth. Causing CreditAuthResult:Referral - call local BA number"
-		res := wordlab.NewSentenceBucket(sent, "testing", "bukt", 45)
-		totalsize := 0
-		for _, bps := range res.Bucket {
-			totalsize += len(bps.BytesSequence)
-		}
-		bpsts := res.BytePosSeqToString()
-		fmt.Printf("byte pos seq to string: %v", bpsts)
-		fmt.Printf("length: %v", len(bpsts))
-		fmt.Printf("total length: %v", totalsize)
-			fmt.Printf("SentnceBucket length %v\n", len(res.Bucket))
-			for _, bps := range res.Bucket {
-				fmt.Printf("Bucket length %v\n", len(bps.BytesSequence))
-			}
-			fmt.Printf("Sentence Bucket: %v\n", res.Bucket)
-			fmt.Printf("sent bucket %v\n", res)
-	*/
-	//amitClassify()
-	//HotelData()
-	//makeAttrs()
-	//newInstance()
-	//makePrediction()
-	for k, v := range wordlab.StopWords("default").IsStopWord {
-		fmt.Printf("%v : %v\n", k, v)
+func pipeDir() {
+	runtime.GOMAXPROCS(8)
+	tkzr := "lex"
+	for _, value := range wordlab.News {
+		fmt.Println(value[1])
+		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, time.Second*90)
 	}
 }
 
+func pipeFile() {
+	path := "/Users/jbowles/x/training_data/corpora/20news-18828/alt.atheism/51060"
+	tkzr := "lex"
+	//tkzr := "unicode"
+	res, err := wordlab.PipeTokenizedFile(path, tkzr)
+	fmt.Println(string(res))
+	fmt.Println(err)
+}
+
+/*
 func printHotelTable() {
 	for id, s := range wordlab.HotelErrorIDTable {
 		fmt.Printf("\n HotelIds: %v, Errors: %v\n", id, s[0])
@@ -54,7 +50,6 @@ func HotelData() {
 	wordlab.BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp)
 }
 
-/*
 func amitClassify() {
 	var stopList = wordlab.StopWords("datasets/stopwords/stopwords.txt")
 	sent := "We’re sorry but we were unable to process your request. You may have temporarily exceeded your credit or debit card limit. Please choose a different card and try again"
@@ -80,7 +75,6 @@ func amitClassify() {
 	//fmt.Printf("result: %v\n", string(result))
 	//fmt.Printf("result: %v\n", attrs)
 }
-*/
 
 func makePrediction() {
 	write_filep := "predict_dummy_file.csv"
@@ -136,7 +130,6 @@ func makePrediction() {
 	fmt.Println(evaluation.GetSummary(confusionMat))
 }
 
-/*
 func getBucket() *wordlab.WordBucket {
 	return wordlab.NewWordBucket("reservation", "")
 }

@@ -120,27 +120,6 @@ func NewPredictionSentenceBucket(sentence, tokenizer string) *SentenceBucket {
 	return bucket
 }
 
-// ConcatRuneSlice concatenates two slices of runes.
-// Takes two arguments that must be slices of type String, order of args is not important.
-// Returns a new slice which is the result of copying the 2 slices passed in a args.
-//
-//  slice_one := []rune("this, that, other")
-//  slice_two := []rune("when, where, why")
-//  ConcatRuneSlice(slice_one,slice_two)
-func ConcatStringSlice(slice1, slice2 []string) []string {
-	new_slice := make([]string, len(slice1)+len(slice2))
-	copy(new_slice, slice1)
-	copy(new_slice[len(slice1):], slice2)
-	return new_slice
-}
-
-func ConcatFloat32Slice(slice1, slice2 []float32) []float32 {
-	new_slice := make([]float32, len(slice1)+len(slice2))
-	copy(new_slice, slice1)
-	copy(new_slice[len(slice1):], slice2)
-	return new_slice
-}
-
 // test that count is under limit, or if limit reached right number of zeros added over threshold.
 func (wb *WordBucket) BytePosCharToString() []string {
 	size := len(wb.Bucket)
