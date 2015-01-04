@@ -19,12 +19,19 @@ func main() {
 }
 
 func pipeDir() {
+	//wordlab.CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vetor", "index", "dotproduct", "label"})
 	runtime.GOMAXPROCS(8)
 	tkzr := "lex"
+	//tfidfFile := "datasets/tfidf.txt"
 	for _, value := range wordlab.News {
-		fmt.Println(value[1])
 		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, time.Second*90)
 	}
+
+	/*
+		for _, value := range wordlab.HotelErrorIDTableDirs {
+			wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, time.Second*90)
+		}
+	*/
 }
 
 func pipeFile() {

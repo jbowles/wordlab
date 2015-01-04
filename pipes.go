@@ -6,7 +6,9 @@ Pipes will stream data from files and tokenize in the stream.
 import (
 	"bufio"
 	"bytes"
+	//"encoding/binary"
 	"encoding/csv"
+	//"encoding/gob"
 	"fmt"
 	ir "github.com/jbowles/nlpt_ir"
 	tkz "github.com/jbowles/nlpt_tkz"
@@ -78,6 +80,7 @@ func PipeTokenizedFile(filePath, tkzType string) ([]byte, error) {
 // Since we are only dealing with a directory of n-number files it implements a timeout as well as not returning any content... instead it writes to output file.
 // TODO: not finished....
 func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, timeoutLimit time.Duration) {
+
 	f, err := os.Create(fileWrite)
 	f.Close()
 	if err != nil {
@@ -90,27 +93,54 @@ func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, timeoutLim
 		p := pipe.Line(
 			ReadFileAndTokenize(file, tkzType),
 			pipe.AppendFile(fileWrite, 0644),
+			ReadDocBuildTfidf(fileWrite),
+			//pipe.AppendFile("modelTFIDF", 0644),
 		)
-		_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+		output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 		if err != nil {
 			Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 		}
+		vecField, err := ir.DecodeVectorStreamBytes(output)
+		Log.Warning("DecodeVectorStream %v, %v\n", vecField, err)
 	}
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)
 }
+func ReadDocBuildTfidf(path string) pipe.Pipe {
+	return pipe.TaskFunc(func(s *pipe.State) error {
+		file, err := os.Open(s.Path(path))
+		if err != nil {
+			return err
+		}
+		scanner := bufio.NewScanner(file)
+		bufferCache := new(bytes.Buffer)
+		vf := &ir.VecField{}
+		for scanner.Scan() {
+			vf.Compose([]string{scanner.Text()})
+		}
+		bufferCache.Write(vf.EncodeVectorStream(*bufferCache).ByteEncoding)
+		/*
+			Log.Info("%s", buffer.String())
+			WriteAttributes(vf)
+		*/
+		_, err = io.Copy(s.Stdout, bufferCache)
+		file.Close()
+		if err != nil {
+			Log.Error("%s", err)
+		}
+		return err
+	})
+}
 
+/*
 func BuildIndex(docs []string) {
-	Log.Debug("************************************ allocate vector field")
-	vf := &ir.VecField{}
-	Log.Debug("************************************ compose vf documents")
-	vf.Compose(docs)
 	CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vetor", "index", "dotproduct", "label"})
 	Log.Debug("************************************ writing attributes")
 	WriteAttributes(vf)
 }
+*/
 
 func WriteAttributes(vf *ir.VecField) {
-	csvfile, writer := fileWriter("attributes.csv")
+	csvfile, writer := fileWriterPipe("attributes.csv")
 	defer csvfile.Close()
 
 	for _, value := range vf.Space {
@@ -134,7 +164,7 @@ func WriteAttributes(vf *ir.VecField) {
 
 }
 
-func fileWriter(file_path string) (*os.File, *csv.Writer) {
+func fileWriterPipe(file_path string) (*os.File, *csv.Writer) {
 	osfile, err := os.OpenFile(file_path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Println(err)
@@ -143,7 +173,7 @@ func fileWriter(file_path string) (*os.File, *csv.Writer) {
 	return osfile, csvwriter
 }
 
-var rootfp = "/Users/jbowles/x/training_data/corpora/20news-18828/"
+var newsRootfp = "/Users/jbowles/x/training_data/corpora/20news-18828/"
 
 const (
 	AtheismID = iota + 1
@@ -172,9 +202,9 @@ const (
 */
 
 var News = map[int][]string{
-	AtheismID:           {"athiesm", rootfp + "alt.atheism", "datasets/athiest.txt"},
-	ComputerGraphicsID:  {"graphics", rootfp + "comp.graphics", "datasets/graphics.txt"},
-	ComputerMsWindowsID: {"computermswindows", rootfp + "comp.os.ms-windows.misc", "datasets/computermswindows.txt"},
+	AtheismID: {"athiesm", newsRootfp + "alt.atheism", "datasets/athiest.txt"},
+	//ComputerGraphicsID:  {"graphics", newsRootfp + "comp.graphics", "datasets/graphics.txt"},
+	//ComputerMsWindowsID: {"computermswindows", newsRootfp + "comp.os.ms-windows.misc", "datasets/computermswindows.txt"},
 }
 
 /*
@@ -198,7 +228,7 @@ var News = map[int][]string{
 }
 */
 
-func CsvCreateFileWithHeaders(force bool, file_path string, headers []string) {
+func CsvCreateFileWithHeadersPipe(force bool, file_path string, headers []string) {
 	file_exists := fileExist(file_path)
 	switch file_exists {
 	case false:
@@ -216,7 +246,7 @@ func CsvCreateFileWithHeaders(force bool, file_path string, headers []string) {
 	writer.Flush()
 	csvfile.Close()
 }
-func fileExist(file_path string) bool {
+func fileExistPipe(file_path string) bool {
 	_, err := os.OpenFile(file_path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	return err == nil
 }

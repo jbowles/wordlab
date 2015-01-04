@@ -85,7 +85,7 @@ func NewSentenceBucket(sentence, labelName, tokenizer string, labelId int) *Sent
 		LabelID:   labelId,
 	}
 
-	tokens, _ := tkz.Tokenize(tokenizer, strings.ToLower(sentence))
+	tokens, _ := tkz.TokenizeStr(strings.ToLower(sentence), tokenizer)
 
 	for pos, token := range tokens {
 		if !stopList.IsStopWord[token] {
@@ -105,7 +105,7 @@ func NewPredictionSentenceBucket(sentence, tokenizer string) *SentenceBucket {
 		Sentence: sentence,
 	}
 
-	tokens, _ := tkz.Tokenize(tokenizer, strings.ToLower(sentence))
+	tokens, _ := tkz.TokenizeStr(strings.ToLower(sentence), tokenizer)
 
 	for pos, token := range tokens {
 		if !stopList.IsStopWord[token] {

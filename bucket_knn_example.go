@@ -18,15 +18,27 @@ const (
 	UnexpectID
 )
 
-var HotelErrorIDTable = map[int][]string{
-	AvailID:         {"availability_error", "availability_error/availability_error.csv"},
-	BookID:          {"booking_error", "booking_error/booking_error.csv"},
-	CancelID:        {"cancel_error", "cancel_error/cancel_error.csv"},
-	CancelForbidID:  {"cancel_forbidden_error", "cancel_forbidden_error/cancel_forbidden_error.csv"},
-	CreditDataID:    {"credit_data_error", "credit_data_error/credit_data_error.csv"},
-	creditDeclineID: {"credit_decline_error", "credit_decline_error/credit_decline_error.csv"},
-	CreditServiceID: {"credit_service_error", "credit_service_error/credit_service_error.csv"},
-	UnexpectID:      {"unexpected_response_error", "unexpected_response_error/unexpected_response_error.csv"},
+var hotelRootFp = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data/"
+var HotelErrorIDTableDirs = map[int][]string{
+	AvailID:         {"availability_error", hotelRootFp + "availability_error", "datasets/tmpavail.csv"},
+	BookID:          {"booking_error", hotelRootFp + "booking_error", "datasets/tmpbook.csv"},
+	CancelID:        {"cancel_error", hotelRootFp + "cancel_error", "datasets/tmpcancel.csv"},
+	CancelForbidID:  {"cancel_forbidden_error", hotelRootFp + "cancel_forbidden_error", "datasets/tmpcnlfrbd.csv"},
+	CreditDataID:    {"credit_data_error", hotelRootFp + "credit_data_error", "datasets/tmpcrdat.csv"},
+	creditDeclineID: {"credit_decline_error", hotelRootFp + "credit_decline_error", "datasets/tmpcrdecl.csv"},
+	CreditServiceID: {"credit_service_error", hotelRootFp + "credit_service_error", "datasets/tmpcserv.csv"},
+	UnexpectID:      {"unexpected_response_error", hotelRootFp + "unexpected_response_error", "datasets/tmpunex.csv"},
+}
+
+var HotelErrorIDTableFiles = map[int][]string{
+	AvailID:         {"availability_error", hotelRootFp + "availability_error/availability_error.csv", "datasets/tmpavail.csv"},
+	BookID:          {"booking_error", hotelRootFp + "booking_error/booking_error.csv", "datasets/tmpbook.csv"},
+	CancelID:        {"cancel_error", hotelRootFp + "cancel_error/cancel_error.csv", "datasets/tmpcancel.csv"},
+	CancelForbidID:  {"cancel_forbidden_error", hotelRootFp + "cancel_forbidden_error/cancel_forbidden_error.csv", "datasets/tmpcnlfrbd.csv"},
+	CreditDataID:    {"credit_data_error", hotelRootFp + "credit_data_error/credit_data_error.csv", "datasets/tmpcrdat.csv"},
+	creditDeclineID: {"credit_decline_error", hotelRootFp + "credit_decline_error/credit_decline_error.csv", "datasets/tmpcrdecl.csv"},
+	CreditServiceID: {"credit_service_error", hotelRootFp + "credit_service_error/credit_service_error.csv", "datasets/tmpcserv.csv"},
+	UnexpectID:      {"unexpected_response_error", hotelRootFp + "unexpected_response_error/unexpected_response_error.csv", "datasets/tmpunex.csv"},
 }
 var HotelErrorNameTable = map[string]int{
 	"availability_error":        AvailID,
@@ -41,10 +53,10 @@ var HotelErrorNameTable = map[string]int{
 
 func AveragedLabelId() int {
 	sum := int(0)
-	for id, _ := range HotelErrorIDTable {
+	for id, _ := range HotelErrorIDTableFiles {
 		sum += id
 	}
-	return (sum / (len(HotelErrorIDTable) * len(HotelErrorIDTable)))
+	return (sum / (len(HotelErrorIDTableFiles) * len(HotelErrorIDTableFiles)))
 }
 
 var wordModelHeaders = CreateByteRangeHeaders(ByteRangeWordModelLimit)
@@ -58,7 +70,7 @@ func BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp string) {
 	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_bucket_hotel_error_words_labelnamelast_train.csv"), new_word_hdrs)
 	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_bucket_hotel_error_sents_labelnamelast_train.csv"), new_sent_hdrs)
 
-	for id, table := range HotelErrorIDTable {
+	for id, table := range HotelErrorIDTableFiles {
 		// add word label name last
 		wmodel := &WordModel{
 			InputFilePath:  root_errorfp + table[1],
@@ -98,7 +110,7 @@ func BuildHotelProviderDataKnnLabelIdFirst(root_errorfp, root_datafp string) {
 	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_words_labelidfirst_train.csv"), new_idword_hdrs)
 	CsvCreateFileWithHeaders(true, (root_datafp + "wordlab_hotel_error_sents_labelidfirst_train.csv"), new_idsent_hdrs)
 
-	for id, table := range HotelErrorIDTable {
+	for id, table := range HotelErrorIDTableFiles {
 		wmodel := &WordModel{
 			InputFilePath:  root_errorfp + table[1],
 			OutputFilePath: root_datafp + "wordlab_hotel_error_words_labelidfirst_train.csv",

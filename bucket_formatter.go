@@ -122,7 +122,7 @@ func (wm WordModel) ParseInputWriteOut() {
 			panic(err)
 		}
 		for _, row := range fields {
-			tokens, _ := tkz.Tokenize(wm.Tokenizer, strings.ToLower(row))
+			tokens, _ := tkz.TokenizeStr(strings.ToLower(row), wm.Tokenizer)
 			for _, token := range tokens {
 				if !stopList.IsStopWord[token] {
 					wm.WriteAttributes(NewWordBucket(token, wm.LabelName, wm.LabelID))
