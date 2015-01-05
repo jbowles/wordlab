@@ -15,7 +15,31 @@ import (
 
 func main() {
 	//pipeFile()
-	pipeDir()
+	//pipeDir()
+	//pipeDirOpt()
+	streamDirOpt()
+}
+
+func streamDirOpt() {
+	runtime.GOMAXPROCS(8)
+	tkzr := "unicode"
+	for _, value := range wordlab.News {
+		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, time.Minute*90)
+	}
+	var input string
+	fmt.Scanln(&input)
+}
+
+//go run main/main.go  290.31s user 2.67s system 673% cpu 43.495 total
+//go run main/main.go  145.14s user 1.09s system 693% cpu 21.080 total
+func pipeDirOpt() {
+	runtime.GOMAXPROCS(8)
+	tkzr := "lex"
+	for _, value := range wordlab.News {
+		go wordlab.PipeTokenizedDirectoryOpt(value[1], value[2], tkzr, time.Minute*90)
+	}
+	var input string
+	fmt.Scanln(&input)
 }
 
 func pipeDir() {
@@ -23,8 +47,10 @@ func pipeDir() {
 	runtime.GOMAXPROCS(8)
 	tkzr := "lex"
 	//tfidfFile := "datasets/tfidf.txt"
+	//before goroutines this took == minutes to run against 2 directories of about 1000 files each.
+	// goroutines this took == minutes to run against 2 directories of about 1000 files each.
 	for _, value := range wordlab.News {
-		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, time.Second*90)
+		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, time.Minute*90)
 	}
 
 	/*

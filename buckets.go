@@ -22,10 +22,6 @@ type PositionTotal float64
 type CharacterTotal float64
 type SequenceTotal float64
 
-var (
-	stopList = StopWords("default")
-)
-
 type WordBucket struct {
 	Bucket              []BytePosChar
 	Word                string

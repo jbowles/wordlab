@@ -14,6 +14,10 @@ type WordlabFormat interface {
 	WriteAttributes()
 }
 
+var (
+	stopList = StopWords("default")
+)
+
 var Log = logging.MustGetLogger("example")
 var LogFormat = logging.MustStringFormatter(
 	"%{color}%{time:15:04:05.000} %{pid} %{shortfile} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}",
