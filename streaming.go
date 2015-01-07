@@ -81,6 +81,7 @@ func StreamTokenizedDirectory(directoryPath, writeFile, tkzType string, timeoutL
 				//pipe.AppendFile(fileWrite, 0644),
 			)
 			_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			//output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 			if err != nil {
 				Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 			}

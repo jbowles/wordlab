@@ -7,9 +7,9 @@ import (
 	"time"
 	//"strings"
 	//tkz "github.com/jbowles/nlpt_tkz"
-	//"github.com/sjwhitworth/golearn/base"
-	//"github.com/sjwhitworth/golearn/evaluation"
-	//"github.com/sjwhitworth/golearn/knn"
+	"github.com/sjwhitworth/golearn/base"
+	"github.com/sjwhitworth/golearn/evaluation"
+	"github.com/sjwhitworth/golearn/knn"
 	//"strconv"
 )
 
@@ -18,6 +18,8 @@ func main() {
 	//pipeDir()
 	//pipeDirOpt()
 	streamDirOpt()
+	//HotelData()
+	//wordlab.AmitKnnValidate()
 }
 
 func streamDirOpt() {
@@ -69,24 +71,24 @@ func pipeFile() {
 	fmt.Println(err)
 }
 
-/*
 func printHotelTable() {
-	for id, s := range wordlab.HotelErrorIDTable {
+	for id, s := range wordlab.HotelErrorIDTableFiles {
 		fmt.Printf("\n HotelIds: %v, Errors: %v\n", id, s[0])
 	}
 }
 
 func HotelData() {
-	var root_errorfp = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data/"
 	var root_datafp = "datasets/"
-	//wordlab.BuildHotelProviderDataKnnLabelIdFirst(root_errorfp, root_datafp)
-	wordlab.BuildHotelProviderDataKnnLabelNameLast(root_errorfp, root_datafp)
+	wordlab.BuildHotelProviderDataKnnLabelIdFirst(root_datafp)
+	wordlab.BuildHotelProviderDataKnnLabelNameLast(root_datafp)
 }
 
+// for word model... yck
+/*
 func amitClassify() {
 	var stopList = wordlab.StopWords("datasets/stopwords/stopwords.txt")
 	sent := "We’re sorry but we were unable to process your request. You may have temporarily exceeded your credit or debit card limit. Please choose a different card and try again"
-	tokens, _ := tkz.Tokenize("bukt", sent)
+	tokens, _ := tkz.TokenizeStr(sent, "unicode")
 	buckets := []wordlab.WordBucket{}
 	for _, token := range tokens {
 		if !stopList.IsStopWord[token] {
@@ -101,13 +103,14 @@ func amitClassify() {
 		}
 		res := wordlab.AmitClassify(attrs)
 		i, _ := strconv.Atoi(string(res))
-		fmt.Printf("result for %v: %v %v\n", bucket.Word, string(res), wordlab.HotelErrorIDTable[i][0])
+		fmt.Printf("result for %v: %v %v\n", bucket.Word, string(res), wordlab.HotelErrorIDTableFiles[i][0])
 	}
 	//attrs := []float32{102, 97, 105, 108, 101, 100, 0, 0, 0, 0, 0, 0, 0.01652997688235604}
 	//result := wordlab.AmitClassify(attrs)
 	//fmt.Printf("result: %v\n", string(result))
 	//fmt.Printf("result: %v\n", attrs)
 }
+*/
 
 func makePrediction() {
 	write_filep := "predict_dummy_file.csv"
@@ -163,10 +166,6 @@ func makePrediction() {
 	fmt.Println(evaluation.GetSummary(confusionMat))
 }
 
-func getBucket() *wordlab.WordBucket {
-	return wordlab.NewWordBucket("reservation", "")
-}
-
 func makeAttrs() {
 	newInst := base.NewDenseInstances()
 	fmt.Println("building new attributes... ")
@@ -194,53 +193,3 @@ func makeAttrs() {
 	fmt.Println(attrs[0].String())
 	//fmt.Println(attrs[0].GetSysValFromString("availability_error"))
 }
-
-func validateKnnClassifier() {
-	neighbors := 12
-	distance := "manhattan"
-	training := "datasets/wordlab_knn_hotel_error_test.csv"
-	knnClassifier := wordlab.InitKnnClassifier(neighbors, distance, training)
-
-	//dense_copy := base.NewDenseCopy(testData)
-	//fmt.Printf("copy of dense instance knnClasifier: %v\n", dense_copy)
-	//sent := "We regret to inform you your credit card was declined."
-
-	fmt.Printf("%v", knnClassifier)
-	//fmt.Printf("%v \n\n\n", testData)
-	//fmt.Printf("*** Prections:: %v\n\n", knnClassifier.Predict(testData))
-}
-
-func newInstance() {
-	// There is a way of creating new Instances from scratch.
-	// Inside an Instance, everything's stored as float64
-	newData := make([]float64, 2)
-	newData[0] = 1.0
-	newData[1] = 0.0
-
-	// Let's create some attributes
-	attrs := make([]base.Attribute, 2)
-	attrs[0] = base.NewFloatAttribute("Arbitrary Float Quantity")
-	attrs[1] = new(base.CategoricalAttribute)
-	attrs[1].SetName("Class")
-	// Insert a standard class
-	attrs[1].GetSysValFromString("A")
-
-	// Now let's create the final instances set
-	newInst := base.NewDenseInstances()
-
-	// Add the attributes
-	newSpecs := make([]base.AttributeSpec, len(attrs))
-	for i, a := range attrs {
-		newSpecs[i] = newInst.AddAttribute(a)
-	}
-
-	// Allocate space
-	newInst.Extend(1)
-
-	// Write the data
-	newInst.Set(newSpecs[0], 0, newSpecs[0].GetAttribute().GetSysValFromString("1.0"))
-	newInst.Set(newSpecs[1], 0, newSpecs[1].GetAttribute().GetSysValFromString("A"))
-
-	fmt.Println(newInst)
-}
-*/

@@ -73,6 +73,7 @@ func (sm SentenceModel) WriteAttributes(sb *SentenceBucket) {
 
 	aggr_byte_value := fmt.Sprintf("%G", sb.AggregagteByteValue) //0.003038961038961039
 	labelid := fmt.Sprintf("%d", sb.LabelID)                     // 3345
+	//hashing := fmt.Sprintf("%d", sb.Hashing)                     // 4783264
 
 	var bucketWrite []string
 	if sm.LabelFirst {
@@ -85,6 +86,7 @@ func (sm SentenceModel) WriteAttributes(sb *SentenceBucket) {
 	}
 
 	bucketWrite = append(bucketWrite, aggr_byte_value)
+	//bucketWrite = append(bucketWrite, hashing)
 
 	// IF need label to be in last position
 	// Add label id and name at n-1 and n position

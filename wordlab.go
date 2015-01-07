@@ -9,10 +9,12 @@ import (
 	"os"
 )
 
+/*
 type WordlabFormat interface {
 	ParseInputWriteOut()
 	WriteAttributes()
 }
+*/
 
 var (
 	stopList = StopWords("default")

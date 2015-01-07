@@ -1,15 +1,14 @@
 package wordlab
 
-/*
-* toying around with https://github.com/amitkgupta/nearest_neighbour/blob/master/golang-k-nn-speedup.go
-package wordlab
+/* toying around with https://github.com/amitkgupta/nearest_neighbour/blob/master/golang-k-nn-speedup.go
+ */
 
 import (
 	"bytes"
-	"fmt"
+	//"fmt"
 	"io/ioutil"
 	"math"
-	"runtime"
+	//"runtime"
 	"strconv"
 )
 
@@ -79,11 +78,11 @@ func squareDistanceWithBailout(features1, features2 []float32, bailout float32) 
 	return
 }
 
-var trainingSample = parseCSVFile("/usr/local/mygo/src/github.com/jbowles/wordlab/datasets/wordlab_hotel_error_sents_labelfirst_train.csv")
+//var trainingSample = parseCSVFile("datasets/wordlab_bucket_hotel_error_sents_labelidfirst_train.csv")
 
-func AmitClassify(features []float32) (label []byte) {
+func AmitClassify(filep string, features []float32) (label []byte) {
+	trainingSample := parseCSVFile(filep)
 	//var trainingSample = parseCSVFile("datasets/trainingsample.csv")
-	//var trainingSample = parseCSVFile("datasets/wordlab_amit_hotel_error_train.csv")
 	label = trainingSample[0].Label
 	d := squareDistanceWithBailout(features, trainingSample[0].Features, math.MaxFloat32)
 
@@ -99,12 +98,13 @@ func AmitClassify(features []float32) (label []byte) {
 	return
 }
 
+//var validationSample = parseCSVFile("datasets/validate.csv")
+
+/*
 func AmitKnnValidate() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	//validationSample := parseCSVFile("datasets/validationsample.csv")
-	//var validationSample = parseCSVFile("datasets/wordlab_amit_hotel_error_validation.csv")
-	var validationSample = parseCSVFile("datasets/validate.csv")
+	validationSample := parseCSVFile("datasets/validationsample.csv")
 
 	var totalCorrect float32 = 0
 	successChannel := make(chan float32)

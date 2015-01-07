@@ -1,7 +1,9 @@
 package wordlab
 
 import (
+	//ir "github.com/jbowles/nlpt_ir"
 	tkz "github.com/jbowles/nlpt_tkz"
+	"hash/fnv"
 	"strconv"
 	"strings"
 )
@@ -16,11 +18,11 @@ import (
 const (
 	ByteRangeWordModelLimit = 12
 	ByteRangeSentModelLimit = 20
+	Bias                    = true
 )
 
-type PositionTotal float64
-type CharacterTotal float64
-type SequenceTotal float64
+var CharacterTotal float64 // use these for creating bias
+var SequenceTotal float64  // use these for creating bias
 
 type WordBucket struct {
 	Bucket              []BytePosChar
@@ -36,6 +38,7 @@ type SentenceBucket struct {
 	AggregagteByteValue float64
 	LabelName           string
 	LabelID             int
+	//Hashing             uint32
 }
 
 type BytePosChar struct {
@@ -58,7 +61,11 @@ func NewWordBucket(word, labelName string, labelId int) *WordBucket {
 	for pos, chr := range []byte(word) {
 		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
 	}
-	bucket.setAggregateByteValue()
+	if Bias {
+		bucket.setBiasAggregateByteValue()
+	} else {
+		bucket.setAggregateByteValue()
+	}
 	return bucket
 }
 
@@ -70,10 +77,15 @@ func NewPredictionWordBucket(word string) *WordBucket {
 	for pos, chr := range []byte(word) {
 		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
 	}
-	bucket.setAggregateByteValue()
+	if Bias {
+		bucket.setBiasAggregateByteValue()
+	} else {
+		bucket.setAggregateByteValue()
+	}
 	return bucket
 }
 
+// TODO use a buffer.Write here
 func NewSentenceBucket(sentence, labelName, tokenizer string, labelId int) *SentenceBucket {
 	bucket := &SentenceBucket{
 		Sentence:  sentence,
@@ -92,7 +104,11 @@ func NewSentenceBucket(sentence, labelName, tokenizer string, labelId int) *Sent
 			bucket.Bucket = append(bucket.Bucket, setBytesPosSeq(float64(pos), byteSeq))
 		}
 	}
-	bucket.setAggregateByteValue()
+	if Bias {
+		bucket.setBiasAggregateByteValue()
+	} else {
+		bucket.setAggregateByteValue()
+	}
 	return bucket
 }
 
@@ -112,8 +128,18 @@ func NewPredictionSentenceBucket(sentence, tokenizer string) *SentenceBucket {
 			bucket.Bucket = append(bucket.Bucket, setBytesPosSeq(float64(pos), byteSeq))
 		}
 	}
-	bucket.setAggregateByteValue()
+	if Bias {
+		bucket.setBiasAggregateByteValue()
+	} else {
+		bucket.setAggregateByteValue()
+	}
 	return bucket
+}
+
+func FnvHash(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
 }
 
 // test that count is under limit, or if limit reached right number of zeros added over threshold.
@@ -221,10 +247,31 @@ func (wb *WordBucket) setAggregateByteValue() {
 
 func (sb *SentenceBucket) setAggregateByteValue() {
 	var seqTotal float64
+	var posTotal int
 	for _, bps := range sb.Bucket {
-		for idx, seq := range bps.BytesSequence {
-			seqTotal += (seq + float64(idx))
+		for position, seq := range bps.BytesSequence {
+			posTotal += position + 1
+			seqTotal += (seq * float64(position)) / float64(posTotal)
 		}
 	}
 	sb.AggregagteByteValue = seqTotal / 0.13
+}
+
+// BIAS FUNCTIONS: basically these increment the same global variable, essentially creating a line through the the knn space as the variable increments sequentially per sequential category. That is, we iterate sequentially throug the category files and so an incrementing variable growing sequentially step-through each category creates a unique pattern and reduces entropy. This is good fine for comparing trianing and test data (which reaches about 99.9% accuracy). But when we have to classify a new instance against training data created with the bias the AggregateByteValue has no fidelity to the training set.
+// Need to experiment with this more.... and see if this bias hurts classifying new instances that don't have that bias... in the case I'm considering new instances WILL NOT BE NEW TOKENS. with new tokens I don't think this woud work at all, but with new instances that are tokens previously seen in the training set then it might work as the there are enough fitting attributes, especially if we add a bloom filter.
+//
+func (wb *WordBucket) setBiasAggregateByteValue() {
+	for _, bpc := range wb.Bucket {
+		CharacterTotal += (bpc.ByteCharacter + bpc.BytePosition) // DANGER: adding bias for gloab variable
+	}
+	wb.AggregagteByteValue = CharacterTotal / 0.13 // DANGER: adding bias for gloab variable
+}
+
+func (sb *SentenceBucket) setBiasAggregateByteValue() {
+	for _, bps := range sb.Bucket {
+		for idx, seq := range bps.BytesSequence {
+			SequenceTotal += (seq + float64(idx)) // DANGER: adding bias for gloab variable
+		}
+	}
+	sb.AggregagteByteValue = SequenceTotal / 0.13 // DANGER: adding bias for gloab variable
 }
