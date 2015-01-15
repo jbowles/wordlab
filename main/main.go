@@ -15,44 +15,81 @@ import (
 
 func main() {
 	//pipeFile()
-	//pipeDir()
-	//pipeDirOpt()
-	streamDirOpt()
+	//pipeWildDir()
+	//pipeHotelErrDir()
+	pipeWildDirOpt()
+	//pipeHotelErrDirOpt()
+	//streamWildDirOpt()
+	//streamHotelErrDirOpt()
 	//HotelData()
 	//wordlab.AmitKnnValidate()
 }
 
-func streamDirOpt() {
+func pipeHotelErrDir() {
+	//wordlab.CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vetor", "index", "dotproduct", "label"})
 	runtime.GOMAXPROCS(8)
 	tkzr := "unicode"
-	for _, value := range wordlab.News {
-		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, time.Minute*90)
+	//tfidfFile := "datasets/tfidf.txt"
+	//before goroutines this took == minutes to run against 2 directories of about 1000 files each.
+	// goroutines this took == minutes to run against 2 directories of about 1000 files each.
+	for docNum, value := range wordlab.HotelErrorIDTableDirs {
+		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
 	}
+}
+
+func pipeHotelErrDirOpt() {
+	runtime.GOMAXPROCS(8)
+	tkzr := "lex"
+	for docNum, value := range wordlab.HotelErrorIDTableDirs {
+		go wordlab.PipeTokenizedDirectoryOpt(value[1], value[2], tkzr, docNum, time.Minute*90)
+	}
+	var input string
+	fmt.Scanln(&input)
+}
+
+func streamHotelErrDirOpt() {
+	runtime.GOMAXPROCS(8)
+	tkzr := "unicode"
+	for docNum, value := range wordlab.HotelErrorIDTableDirs {
+		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
+	}
+	// sigkill goroutines in script
+	var input string
+	fmt.Scanln(&input)
+}
+
+func streamWildDirOpt() {
+	runtime.GOMAXPROCS(8)
+	tkzr := "unicode"
+	for docNum, value := range wordlab.News {
+		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
+	}
+	// sigkill goroutines in script
 	var input string
 	fmt.Scanln(&input)
 }
 
 //go run main/main.go  290.31s user 2.67s system 673% cpu 43.495 total
 //go run main/main.go  145.14s user 1.09s system 693% cpu 21.080 total
-func pipeDirOpt() {
+func pipeWildDirOpt() {
 	runtime.GOMAXPROCS(8)
 	tkzr := "lex"
-	for _, value := range wordlab.News {
-		go wordlab.PipeTokenizedDirectoryOpt(value[1], value[2], tkzr, time.Minute*90)
+	for docNum, value := range wordlab.News {
+		go wordlab.PipeTokenizedDirectoryOpt(value[1], value[2], tkzr, docNum, time.Minute*90)
 	}
 	var input string
 	fmt.Scanln(&input)
 }
 
-func pipeDir() {
+func pipeWildDir() {
 	//wordlab.CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vetor", "index", "dotproduct", "label"})
 	runtime.GOMAXPROCS(8)
 	tkzr := "lex"
 	//tfidfFile := "datasets/tfidf.txt"
 	//before goroutines this took == minutes to run against 2 directories of about 1000 files each.
 	// goroutines this took == minutes to run against 2 directories of about 1000 files each.
-	for _, value := range wordlab.News {
-		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, time.Minute*90)
+	for docNum, value := range wordlab.News {
+		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
 	}
 
 	/*

@@ -31,27 +31,28 @@ const (
 	UnexpectID      = 300
 )
 
-var HotelRootFp = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data/"
+var HotelRootFpCSV = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data_csv/"
+var HotelRootFpTXT = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data_txt/"
 var HotelErrorIDTableDirs = map[int][]string{
-	AvailID:         {"availability_error", HotelRootFp + "availability_error", "datasets/tmpavail.csv"},
-	BookID:          {"booking_error", HotelRootFp + "booking_error", "datasets/tmpbook.csv"},
-	CancelID:        {"cancel_error", HotelRootFp + "cancel_error", "datasets/tmpcancel.csv"},
-	CancelForbidID:  {"cancel_forbidden_error", HotelRootFp + "cancel_forbidden_error", "datasets/tmpcnlfrbd.csv"},
-	CreditDataID:    {"credit_data_error", HotelRootFp + "credit_data_error", "datasets/tmpcrdat.csv"},
-	creditDeclineID: {"credit_decline_error", HotelRootFp + "credit_decline_error", "datasets/tmpcrdecl.csv"},
-	CreditServiceID: {"credit_service_error", HotelRootFp + "credit_service_error", "datasets/tmpcserv.csv"},
-	UnexpectID:      {"unexpected_response_error", HotelRootFp + "unexpected_response_error", "datasets/tmpunex.csv"},
+	AvailID:         {"availability", HotelRootFpTXT + "availability_error", "datasets/tmpavail.txt"},
+	BookID:          {"booking", HotelRootFpTXT + "booking_error", "datasets/tmpbook.txt"},
+	CancelID:        {"cancel", HotelRootFpTXT + "cancel_error", "datasets/tmpcancel.txt"},
+	CancelForbidID:  {"cancelforbidden", HotelRootFpTXT + "cancel_forbidden_error", "datasets/tmpcnlfrbd.txt"},
+	CreditDataID:    {"creditdata", HotelRootFpTXT + "credit_data_error", "datasets/tmpcrdat.txt"},
+	creditDeclineID: {"creditdecline", HotelRootFpTXT + "credit_decline_error", "datasets/tmpcrdecl.txt"},
+	CreditServiceID: {"creditservice", HotelRootFpTXT + "credit_service_error", "datasets/tmpcserv.txt"},
+	UnexpectID:      {"unexpectedresponse", HotelRootFpTXT + "unexpected_response_error", "datasets/tmpunex.txt"},
 }
 
 var HotelErrorIDTableFiles = map[int][]string{
-	AvailID:         {"availability_error", HotelRootFp + "availability_error/availability_error.csv", "datasets/tmpavail.csv"},
-	BookID:          {"booking_error", HotelRootFp + "booking_error/booking_error.csv", "datasets/tmpbook.csv"},
-	CancelID:        {"cancel_error", HotelRootFp + "cancel_error/cancel_error.csv", "datasets/tmpcancel.csv"},
-	CancelForbidID:  {"cancel_forbidden_error", HotelRootFp + "cancel_forbidden_error/cancel_forbidden_error.csv", "datasets/tmpcnlfrbd.csv"},
-	CreditDataID:    {"credit_data_error", HotelRootFp + "credit_data_error/credit_data_error.csv", "datasets/tmpcrdat.csv"},
-	creditDeclineID: {"credit_decline_error", HotelRootFp + "credit_decline_error/credit_decline_error.csv", "datasets/tmpcrdecl.csv"},
-	CreditServiceID: {"credit_service_error", HotelRootFp + "credit_service_error/credit_service_error.csv", "datasets/tmpcserv.csv"},
-	UnexpectID:      {"unexpected_response_error", HotelRootFp + "unexpected_response_error/unexpected_response_error.csv", "datasets/tmpunex.csv"},
+	AvailID:         {"availability_error", HotelRootFpCSV + "availability_error/availability_error.csv", "datasets/tmpavail.csv"},
+	BookID:          {"booking_error", HotelRootFpCSV + "booking_error/booking_error.csv", "datasets/tmpbook.csv"},
+	CancelID:        {"cancel_error", HotelRootFpCSV + "cancel_error/cancel_error.csv", "datasets/tmpcancel.csv"},
+	CancelForbidID:  {"cancel_forbidden_error", HotelRootFpCSV + "cancel_forbidden_error/cancel_forbidden_error.csv", "datasets/tmpcnlfrbd.csv"},
+	CreditDataID:    {"credit_data_error", HotelRootFpCSV + "credit_data_error/credit_data_error.csv", "datasets/tmpcrdat.csv"},
+	creditDeclineID: {"credit_decline_error", HotelRootFpCSV + "credit_decline_error/credit_decline_error.csv", "datasets/tmpcrdecl.csv"},
+	CreditServiceID: {"credit_service_error", HotelRootFpCSV + "credit_service_error/credit_service_error.csv", "datasets/tmpcserv.csv"},
+	UnexpectID:      {"unexpected_response_error", HotelRootFpCSV + "unexpected_response_error/unexpected_response_error.csv", "datasets/tmpunex.csv"},
 }
 var HotelErrorNameTable = map[string]int{
 	"availability_error":        AvailID,

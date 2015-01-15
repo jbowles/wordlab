@@ -61,7 +61,7 @@ func ReadFileAndTokenize(path, tokenizer string) pipe.Pipe {
 	})
 }
 
-func PipeTokenizedDirectoryOpt(directoryPath, fileWrite, tkzType string, timeoutLimit time.Duration) {
+func PipeTokenizedDirectoryOpt(directoryPath, fileWrite, tkzType string, docNum int, timeoutLimit time.Duration) {
 	//overwrite the output file
 	f, err := os.Create(fileWrite)
 	f.Close()
@@ -71,26 +71,29 @@ func PipeTokenizedDirectoryOpt(directoryPath, fileWrite, tkzType string, timeout
 	}
 
 	handler := NewFileHandler(directoryPath)
-	go func(handler *FileHandler, timeoutLimit time.Duration, tkzType, fileWrite string) {
+	go func(handler *FileHandler, timeoutLimit time.Duration, docNum int, tkzType, fileWrite string) {
 		for _, file := range handler.FullFilePaths {
 			p := pipe.Line(
 				ReadFileAndTokenize(file, tkzType),
 				pipe.AppendFile(fileWrite, 0644),
-				ReadDocBuildTfidf(fileWrite),
+				ReadDocBuildTfidf(fileWrite, docNum),
 				//AppendFileEncodedVectorField("modelTFIDF", 0644),
 			)
 			output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			//_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 			if err != nil {
 				Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 			}
+			vecField, err := ir.DecodeVectorStreamBytes(output)
+			WriteVector(vecField)
 
 			/// *************** DEBUGGING ****************
 			//Log.Debug("FILE: %v\n Tokenized %v\n\n", file, output)
-			vecField, err := ir.DecodeVectorStreamBytes(output)
-			Log.Debug("FILE: %v\nDecodeVectorStream %v, %v\n\n", file, err, vecField)
+			//vecField, err := ir.DecodeVectorStreamBytes(output)
+			//Log.Debug("FILE: %v\nDecodeVectorStream %v, %v\n\n", file, err, vecField)
 			/// *************** DEBUGGING ****************
 		}
-	}(handler, timeoutLimit, tkzType, fileWrite)
+	}(handler, timeoutLimit, docNum, tkzType, fileWrite)
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)
 }
 
@@ -123,8 +126,8 @@ func firstErr(err1, err2 error) error {
 	return err2
 }
 
-//TODO this is still totally broken!!! creating a document 0 on each iteration.
-func ReadDocBuildTfidf(path string) pipe.Pipe {
+//TODO this is still totally broken!!! creating a document on each iteration.
+func ReadDocBuildTfidf(path string, docNum int) pipe.Pipe {
 	return pipe.TaskFunc(func(s *pipe.State) error {
 		file, err := os.Open(s.Path(path))
 		if err != nil {
@@ -135,9 +138,10 @@ func ReadDocBuildTfidf(path string) pipe.Pipe {
 		bufferCache := new(bytes.Buffer)
 		vf := &ir.VecField{}
 		for scanner.Scan() {
-			vf.Compose([]string{scanner.Text()})
+			vf.Compose([]string{scanner.Text()}, docNum)
 		}
-		bufferCache.Write(vf.EncodeVectorStream(*bufferCache).ByteEncoding)
+		//fmt.Printf("******************** %v", vf)
+		bufferCache.Write(vf.EncodeVectorStream(bufferCache).ByteEncoding)
 		_, err = io.Copy(s.Stdout, bufferCache)
 		if err != nil {
 			Log.Error("%s", err)
@@ -145,39 +149,6 @@ func ReadDocBuildTfidf(path string) pipe.Pipe {
 		file.Close()
 		return err
 	})
-}
-
-/*
-func BuildIndex(docs []string) {
-	CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vetor", "index", "dotproduct", "label"})
-	Log.Debug("************************************ writing attributes")
-	WriteAttributes(vf)
-}
-*/
-
-func WriteAttributes(vf *ir.VecField) {
-	csvfile, writer := fileWriterPipe("attributes.csv")
-	defer csvfile.Close()
-
-	for _, value := range vf.Space {
-		//fmt.Printf("%v, count: %v\n", key, len(value))
-		//fmt.Printf("%v\n", value)
-		for _, vector := range value {
-			var bucketWrite []string
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%v", vector))
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.BloomFilter))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.Index))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%G", vector.DotProduct))
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.DocNum))
-			bucketWrite = append(bucketWrite, News[vector.DocNum][0])
-			writeErr := writer.Write(bucketWrite)
-			if writeErr != nil {
-				fmt.Println(writeErr)
-			}
-			writer.Flush()
-		}
-	}
-
 }
 
 func fileWriterPipe(file_path string) (*os.File, *csv.Writer) {
@@ -291,7 +262,7 @@ func PipeTokenizedFile(filePath, tkzType string) ([]byte, error) {
 // Since we are only dealing with a directory of n-number files it implements a timeout as well as not returning any content... instead it writes to output file.
 // TODO: not finished.... its building TFIDF for EVERY file.
 /// before goroutines
-func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, timeoutLimit time.Duration) {
+func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, docNum int, timeoutLimit time.Duration) {
 
 	//overwrite the output file
 	f, err := os.Create(fileWrite)
@@ -303,19 +274,55 @@ func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, timeoutLim
 
 	handler := NewFileHandler(directoryPath)
 	for _, file := range handler.FullFilePaths {
-		//Log.Debug("streaming file: %v", file)
+		Log.Debug("streaming file: %v", file)
 		p := pipe.Line(
 			ReadFileAndTokenize(file, tkzType),
 			pipe.AppendFile(fileWrite, 0644),
-			ReadDocBuildTfidf(fileWrite),
+			ReadDocBuildTfidf(fileWrite, docNum),
 			//pipe.AppendFile("modelTFIDF", 0644),
 		)
-		output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+		//output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+		_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 		if err != nil {
 			Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 		}
-		vecField, err := ir.DecodeVectorStreamBytes(output)
-		Log.Warning("DecodeVectorStream %v, %v\n", vecField, err)
+		//vecField, verr := ir.DecodeVectorStreamBytes(output)
+		//if verr != nil {
+		//	Log.Error("dcode stream: %s", verr)
+		//}
+		//WriteVector(vecField)
+		//Log.Debug("DecodeVectorStream %T, OUTPUT: %T\n", vecField, output)
 	}
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)
+}
+
+func WriteVector(vf ir.VecField) {
+	CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vector", "index", "dotproduct", "label"})
+	Log.Debug("************************************ writing attributes")
+	WriteAttributes(vf)
+}
+
+func WriteAttributes(vf ir.VecField) {
+	csvfile, writer := fileWriterPipe("attributes.csv")
+	defer csvfile.Close()
+
+	for _, value := range vf.Space {
+		//fmt.Printf("%v, count: %v\n", key, len(value))
+		//fmt.Printf("%v\n", value)
+		for _, vector := range value {
+			var bucketWrite []string
+			bucketWrite = append(bucketWrite, fmt.Sprintf("%v", vector))
+			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.BloomFilter))
+			bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.Index))
+			bucketWrite = append(bucketWrite, fmt.Sprintf("%G", vector.DotProduct))
+			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.DocNum))
+			bucketWrite = append(bucketWrite, "this") //HotelErrorIDTableDirs[vector.DocNum][0])
+			writeErr := writer.Write(bucketWrite)
+			if writeErr != nil {
+				fmt.Println(writeErr)
+			}
+			writer.Flush()
+		}
+	}
+
 }

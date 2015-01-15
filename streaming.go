@@ -8,7 +8,8 @@ import (
 	//"encoding/csv"
 	//"encoding/gob"
 	//"fmt"
-	//ir "github.com/jbowles/nlpt_ir"
+	//"fmt"
+	ir "github.com/jbowles/nlpt_ir"
 	tkz "github.com/jbowles/nlpt_tkz"
 	"gopkg.in/pipe.v2"
 	"io"
@@ -61,7 +62,7 @@ func PipeFileTokens(readFile, tokenizer string) pipe.Pipe {
 	})
 }
 
-func StreamTokenizedDirectory(directoryPath, writeFile, tkzType string, timeoutLimit time.Duration) {
+func StreamTokenizedDirectory(directoryPath, writeFile, tkzType string, docNum int, timeoutLimit time.Duration) {
 	//overwrite the output file
 	f, err := os.Create(writeFile)
 	f.Close()
@@ -71,26 +72,67 @@ func StreamTokenizedDirectory(directoryPath, writeFile, tkzType string, timeoutL
 	}
 
 	handler := NewFileHandler(directoryPath)
-	go func(handler *FileHandler, timeoutLimit time.Duration, tkzType, fileWrite string) {
+	go func(handler *FileHandler, timeoutLimit time.Duration, docNum int, tkzType, fileWrite string) {
 		for _, file := range handler.FullFilePaths {
 			p := pipe.Line(
 				PipeFileTokens(file, tkzType),
 				//pipe.Filter(func(line []byte) bool { return stopList.IsStopWord[string(line)] }),
 				pipe.AppendFile(fileWrite, 0644),
 				//PipeFileTokens(fileWrite, "unicode"),
-				//pipe.AppendFile(fileWrite, 0644),
+				//pipe.AppendFile(fileWrite, 0644),ReadDocBuildTfidf(fileWrite),
 			)
-			_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
-			//output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			//_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 			if err != nil {
 				Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 			}
+			vecField, err := ir.DecodeVectorStreamBytes(output)
+			if err != nil {
+				Log.Error("ir.DecodeVectorStreamBytes: %s", err)
+			}
+			WriteVector(vecField)
 
 			/// *************** DEBUGGING ****************
 			//Log.Debug("FILE: %v\n filter %v\n", file, string(output))
 			//Log.Debug("FILE: %v\n tokens %v\n", file, string(output))
+			//Log.Debug("VectorField %v", vecField)
 			/// *************** DEBUGGING ****************
 		}
-	}(handler, timeoutLimit, tkzType, writeFile)
+	}(handler, timeoutLimit, docNum, tkzType, writeFile)
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)
+}
+
+func BuildStrArray(file_path string, docNum int) *ir.VecField {
+	file, err := os.Open(file_path)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	buffer := bytes.NewBuffer(make([]byte, 0))
+
+	var chunk []byte
+	var eol bool
+	var str_array []string
+
+	for {
+		if chunk, eol, err = reader.ReadLine(); err != nil {
+			break
+		}
+		buffer.Write(chunk)
+		if !eol {
+			str_array = append(str_array, buffer.String())
+			buffer.Reset()
+		}
+	}
+
+	if err == io.EOF {
+		err = nil
+	}
+	vf := &ir.VecField{}
+	vf.Compose(str_array, docNum)
+	return vf
 }
