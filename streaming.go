@@ -3,18 +3,12 @@ package wordlab
 import (
 	"bufio"
 	"bytes"
-	//"io/ioutil"
-	//"encoding/binary"
-	//"encoding/csv"
-	//"encoding/gob"
-	//"fmt"
-	//"fmt"
+	"fmt"
 	ir "github.com/jbowles/nlpt_ir"
 	tkz "github.com/jbowles/nlpt_tkz"
 	"gopkg.in/pipe.v2"
 	"io"
 	"os"
-	//"path/filepath"
 	"time"
 )
 
@@ -76,33 +70,18 @@ func StreamTokenizedDirectory(directoryPath, writeFile, tkzType string, docNum i
 		for _, file := range handler.FullFilePaths {
 			p := pipe.Line(
 				PipeFileTokens(file, tkzType),
-				//pipe.Filter(func(line []byte) bool { return stopList.IsStopWord[string(line)] }),
 				pipe.AppendFile(fileWrite, 0644),
-				//PipeFileTokens(fileWrite, "unicode"),
-				//pipe.AppendFile(fileWrite, 0644),ReadDocBuildTfidf(fileWrite),
 			)
-			//_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
-			output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 			if err != nil {
 				Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 			}
-			vecField, err := ir.DecodeVectorStreamBytes(output)
-			if err != nil {
-				Log.Error("ir.DecodeVectorStreamBytes: %s", err)
-			}
-			WriteVector(vecField)
-
-			/// *************** DEBUGGING ****************
-			//Log.Debug("FILE: %v\n filter %v\n", file, string(output))
-			//Log.Debug("FILE: %v\n tokens %v\n", file, string(output))
-			//Log.Debug("VectorField %v", vecField)
-			/// *************** DEBUGGING ****************
 		}
 	}(handler, timeoutLimit, docNum, tkzType, writeFile)
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)
 }
 
-func BuildStrArray(file_path string, docNum int) *ir.VecField {
+func BuildDocument(file_path string, docNum int) *ir.VecField {
 	file, err := os.Open(file_path)
 
 	if err != nil {
@@ -128,11 +107,48 @@ func BuildStrArray(file_path string, docNum int) *ir.VecField {
 			buffer.Reset()
 		}
 	}
+	Log.Error("length fo str array: %v", len(str_array))
 
 	if err == io.EOF {
 		err = nil
 	}
 	vf := &ir.VecField{}
 	vf.Compose(str_array, docNum)
+	WriteAttributes(*vf)
 	return vf
+}
+
+func aggByteVal(term string) float64 {
+	var seqTotal int
+	for idx, rn := range term {
+		seqTotal += idx + int(rn)
+	}
+	return float64(seqTotal)
+}
+
+func WriteAttributes(vf ir.VecField) {
+	Log.Debug("************************************ writing attributes")
+	csvfile, writer := fileWriterPipe("attributes.csv")
+	defer csvfile.Close()
+
+	for word, vectors := range vf.Space {
+		//fmt.Printf("word: %v\n", word)
+		//fmt.Printf("value: %v\n", value)
+		for _, vector := range vectors {
+			var bucketWrite []string
+			//bucketWrite = append(bucketWrite, fmt.Sprintf("%v", vector))
+			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.BloomFilter))
+			bucketWrite = append(bucketWrite, fmt.Sprintf("%f", aggByteVal(word)))
+			bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.Index))
+			bucketWrite = append(bucketWrite, fmt.Sprintf("%G", vector.DotProduct))
+			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.DocNum))
+			bucketWrite = append(bucketWrite, HotelErrorIDTableDirs[vector.DocNum][0])
+			writeErr := writer.Write(bucketWrite)
+			if writeErr != nil {
+				fmt.Println(writeErr)
+			}
+			writer.Flush()
+		}
+	}
+
 }

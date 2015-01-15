@@ -21,14 +21,14 @@ const (
 */
 
 const (
-	AvailID         = 20
-	BookID          = 60
-	CancelID        = 100
-	CancelForbidID  = 140
-	CreditDataID    = 180
-	creditDeclineID = 220
-	CreditServiceID = 260
-	UnexpectID      = 300
+	AvailID         = iota //= 20
+	BookID                 //= 60
+	CancelID               //= 100
+	CancelForbidID         //= 140
+	CreditDataID           //= 180
+	creditDeclineID        //= 220
+	CreditServiceID        //= 260
+	UnexpectID             //= 300
 )
 
 var HotelRootFpCSV = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data_csv/"

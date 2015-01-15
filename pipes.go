@@ -79,13 +79,13 @@ func PipeTokenizedDirectoryOpt(directoryPath, fileWrite, tkzType string, docNum 
 				ReadDocBuildTfidf(fileWrite, docNum),
 				//AppendFileEncodedVectorField("modelTFIDF", 0644),
 			)
-			output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
-			//_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			//output, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
+			_, err := pipe.CombinedOutputTimeout(p, timeoutLimit)
 			if err != nil {
 				Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 			}
-			vecField, err := ir.DecodeVectorStreamBytes(output)
-			WriteVector(vecField)
+			//vecField, err := ir.DecodeVectorStreamBytes(output)
+			//WriteVector(vecField)
 
 			/// *************** DEBUGGING ****************
 			//Log.Debug("FILE: %v\n Tokenized %v\n\n", file, output)
@@ -294,35 +294,4 @@ func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, docNum int
 		//Log.Debug("DecodeVectorStream %T, OUTPUT: %T\n", vecField, output)
 	}
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)
-}
-
-func WriteVector(vf ir.VecField) {
-	CsvCreateFileWithHeaders(true, "attributes.csv", []string{"vector", "index", "dotproduct", "label"})
-	Log.Debug("************************************ writing attributes")
-	WriteAttributes(vf)
-}
-
-func WriteAttributes(vf ir.VecField) {
-	csvfile, writer := fileWriterPipe("attributes.csv")
-	defer csvfile.Close()
-
-	for _, value := range vf.Space {
-		//fmt.Printf("%v, count: %v\n", key, len(value))
-		//fmt.Printf("%v\n", value)
-		for _, vector := range value {
-			var bucketWrite []string
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%v", vector))
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.BloomFilter))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.Index))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%G", vector.DotProduct))
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.DocNum))
-			bucketWrite = append(bucketWrite, "this") //HotelErrorIDTableDirs[vector.DocNum][0])
-			writeErr := writer.Write(bucketWrite)
-			if writeErr != nil {
-				fmt.Println(writeErr)
-			}
-			writer.Flush()
-		}
-	}
-
 }

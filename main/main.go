@@ -7,6 +7,7 @@ import (
 	"time"
 	//"strings"
 	//tkz "github.com/jbowles/nlpt_tkz"
+	//ir "github.com/jbowles/nlpt_ir"
 	"github.com/sjwhitworth/golearn/base"
 	"github.com/sjwhitworth/golearn/evaluation"
 	"github.com/sjwhitworth/golearn/knn"
@@ -17,12 +18,31 @@ func main() {
 	//pipeFile()
 	//pipeWildDir()
 	//pipeHotelErrDir()
-	pipeWildDirOpt()
-	//pipeHotelErrDirOpt()
+	//pipeWildDirOpt()
 	//streamWildDirOpt()
 	//streamHotelErrDirOpt()
 	//HotelData()
 	//wordlab.AmitKnnValidate()
+	buildIt()
+}
+
+func streamHotelErrDirOpt() {
+	runtime.GOMAXPROCS(8)
+	//var space []ir.VecField
+	tkzr := "lex"
+	for docNum, value := range wordlab.HotelErrorIDTableDirs {
+		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
+	}
+
+	var input string
+	fmt.Scanln(&input)
+}
+
+func buildIt() {
+	wordlab.CsvCreateFileWithHeaders(true, "attributes.csv", []string{"term", "index", "dotproduct", "label"})
+	for docNum, value := range wordlab.HotelErrorIDTableDirs {
+		wordlab.BuildDocument(value[2], docNum)
+	}
 }
 
 func pipeHotelErrDir() {
@@ -35,27 +55,6 @@ func pipeHotelErrDir() {
 	for docNum, value := range wordlab.HotelErrorIDTableDirs {
 		wordlab.PipeTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
 	}
-}
-
-func pipeHotelErrDirOpt() {
-	runtime.GOMAXPROCS(8)
-	tkzr := "lex"
-	for docNum, value := range wordlab.HotelErrorIDTableDirs {
-		go wordlab.PipeTokenizedDirectoryOpt(value[1], value[2], tkzr, docNum, time.Minute*90)
-	}
-	var input string
-	fmt.Scanln(&input)
-}
-
-func streamHotelErrDirOpt() {
-	runtime.GOMAXPROCS(8)
-	tkzr := "unicode"
-	for docNum, value := range wordlab.HotelErrorIDTableDirs {
-		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
-	}
-	// sigkill goroutines in script
-	var input string
-	fmt.Scanln(&input)
 }
 
 func streamWildDirOpt() {
