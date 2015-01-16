@@ -1,7 +1,6 @@
 package wordlab
 
 import (
-	ir "github.com/jbowles/nlpt_ir"
 	tkz "github.com/jbowles/nlpt_tkz"
 	"hash/fnv"
 	"strconv"
@@ -24,10 +23,12 @@ const (
 var CharacterTotal float64 // use these for creating bias
 var SequenceTotal float64  // use these for creating bias
 
-type TermBucket struct {
-	Bucket    *ir.VecField
-	LabelName string
-	DocNum    int
+type SentenceBucket struct {
+	Bucket              []BytesPosSeq
+	Sentence            string
+	AggregagteByteValue float64
+	LabelName           string
+	LabelID             int
 }
 
 type WordBucket struct {
@@ -38,15 +39,6 @@ type WordBucket struct {
 	LabelID             int
 }
 
-type SentenceBucket struct {
-	Bucket              []BytesPosSeq
-	Sentence            string
-	AggregagteByteValue float64
-	LabelName           string
-	LabelID             int
-	//Hashing             uint32
-}
-
 type BytePosChar struct {
 	BytePosition  float64
 	ByteCharacter float64
@@ -55,30 +47,6 @@ type BytePosChar struct {
 type BytesPosSeq struct {
 	BytesPosition float64
 	BytesSequence []float64
-}
-
-func NewTermBucket(document []string, docNum int, tokenizer, label string) *TermBucket {
-	/*
-		var tokens []string
-
-		for _, term := range document {
-			tks, _ := tkz.TokenizeStr(strings.ToLower(string(term)), tokenizer)
-			for _, tk := range tks {
-				if !stopList.IsStopWord[string(tk)] && (len(tks) > 3 && len(tks) < 10) {
-					tokens = append(tokens, string(tk))
-				}
-			}
-		}
-	*/
-
-	vf := &ir.VecField{}
-	vf.Compose(document, docNum)
-	bucket := &TermBucket{
-		Bucket:    vf,
-		LabelName: label,
-		DocNum:    docNum,
-	}
-	return bucket
 }
 
 // TODO use a buffer.Write here

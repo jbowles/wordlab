@@ -36,15 +36,6 @@ type SentenceModel struct {
 	AddLabelID     bool
 }
 
-type TermModel struct {
-	InputFilePath  string
-	OutputFilePath string
-	LabelName      string
-	Tokenizer      string
-	DocNum         int
-	ForceOverwrite bool
-}
-
 // SentenceModelLabelLast ParseInputWriteOut() does not need tokenizer as the tokenization is done at the time
 // of creating NewSentenceBucket and computing the byte sequence ranges and aggregate byte values
 func (sm SentenceModel) ParseInputWriteOut() {
@@ -73,37 +64,6 @@ func (sm SentenceModel) ParseInputWriteOut() {
 				),
 			)
 		}
-	}
-}
-
-func (tm TermModel) ParseInputWriteOut() {
-	csvFile, err := os.Open(tm.InputFilePath)
-	defer csvFile.Close()
-	if err != nil {
-		panic(err)
-	}
-	csvReader := csv.NewReader(csvFile)
-	csvReader.TrimLeadingSpace = true
-	csvReader.FieldsPerRecord = 1
-	var terms []string
-	for {
-		fields, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			panic(err)
-		}
-		for _, row := range fields {
-			terms = append(terms, row)
-		}
-		tm.WriteAttributes(
-			NewTermBucket(
-				terms,
-				tm.DocNum,
-				tm.Tokenizer,
-				tm.LabelName,
-			),
-		)
 	}
 }
 
@@ -144,31 +104,6 @@ func (sm SentenceModel) WriteAttributes(sb *SentenceBucket) {
 		fmt.Println(writeErr)
 	}
 	writer.Flush()
-}
-
-func (tm TermModel) WriteAttributes(tb *TermBucket) {
-	csvfile, writer := fileWriter(tm.OutputFilePath)
-	defer csvfile.Close()
-
-	for word, vectors := range tb.Bucket.Space {
-		for _, vector := range vectors {
-			var bucketWrite []string
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%v", vector))
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.BloomFilter))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%f", aggByteVal(word)))
-			//bucketWrite = append(bucketWrite, word)
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.Index))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%G", vector.DotProduct))
-			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.DocNum))
-			bucketWrite = append(bucketWrite, tm.LabelName)
-			writeErr := writer.Write(bucketWrite)
-			if writeErr != nil {
-				fmt.Println(writeErr)
-			}
-			writer.Flush()
-		}
-	}
-
 }
 
 // tokenizer can be 'bukt', 'lex'

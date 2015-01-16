@@ -13,6 +13,8 @@ import (
 type FileHandler struct {
 	DirName       string
 	DirPath       string
+	DocumentLabel string
+	Tokenizer     string
 	FullFilePaths []string
 	FileInfo      []os.FileInfo
 	FullPathFn    func(string, string, string) string
@@ -20,11 +22,23 @@ type FileHandler struct {
 
 var separator = string(filepath.Separator)
 
-func NewFileHandler(dirPath string) *FileHandler {
-	Log.Debug("Creating new FileHandler for Directory path at %s:", dirPath)
+func NewDirHandler(dirPath, dirLabel, tokenizer string) *FileHandler {
+	handler := &FileHandler{
+		DirName:       dirPath + separator,
+		DirPath:       dirPath,
+		Tokenizer:     tokenizer,
+		DocumentLabel: dirLabel,
+		FullPathFn:    func(dirpath, sep, filename string) string { return dirpath + sep + filename },
+	}
+	handler.setFileNames()
+	return handler
+}
+
+func NewFileHandler(dirPath, tokenizer string) *FileHandler {
 	handler := &FileHandler{
 		DirName:    dirPath + separator,
 		DirPath:    dirPath,
+		Tokenizer:  tokenizer,
 		FullPathFn: func(dirpath, sep, filename string) string { return dirpath + sep + filename },
 	}
 	handler.setFileNames()
