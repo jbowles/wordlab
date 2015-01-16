@@ -1,7 +1,7 @@
 package wordlab
 
 import (
-	//ir "github.com/jbowles/nlpt_ir"
+	ir "github.com/jbowles/nlpt_ir"
 	tkz "github.com/jbowles/nlpt_tkz"
 	"hash/fnv"
 	"strconv"
@@ -23,6 +23,12 @@ const (
 
 var CharacterTotal float64 // use these for creating bias
 var SequenceTotal float64  // use these for creating bias
+
+type TermBucket struct {
+	Bucket    *ir.VecField
+	LabelName string
+	DocNum    int
+}
 
 type WordBucket struct {
 	Bucket              []BytePosChar
@@ -51,36 +57,26 @@ type BytesPosSeq struct {
 	BytesSequence []float64
 }
 
-func NewWordBucket(word, labelName string, labelId int) *WordBucket {
-	bucket := &WordBucket{
-		Word:      word,
-		LabelName: labelName,
-		LabelID:   labelId,
-	}
+func NewTermBucket(document []string, docNum int, tokenizer, label string) *TermBucket {
+	/*
+		var tokens []string
 
-	for pos, chr := range []byte(word) {
-		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
-	}
-	if Bias {
-		bucket.setBiasAggregateByteValue()
-	} else {
-		bucket.setAggregateByteValue()
-	}
-	return bucket
-}
+		for _, term := range document {
+			tks, _ := tkz.TokenizeStr(strings.ToLower(string(term)), tokenizer)
+			for _, tk := range tks {
+				if !stopList.IsStopWord[string(tk)] && (len(tks) > 3 && len(tks) < 10) {
+					tokens = append(tokens, string(tk))
+				}
+			}
+		}
+	*/
 
-func NewPredictionWordBucket(word string) *WordBucket {
-	bucket := &WordBucket{
-		Word: word,
-	}
-
-	for pos, chr := range []byte(word) {
-		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
-	}
-	if Bias {
-		bucket.setBiasAggregateByteValue()
-	} else {
-		bucket.setAggregateByteValue()
+	vf := &ir.VecField{}
+	vf.Compose(document, docNum)
+	bucket := &TermBucket{
+		Bucket:    vf,
+		LabelName: label,
+		DocNum:    docNum,
 	}
 	return bucket
 }
@@ -96,7 +92,7 @@ func NewSentenceBucket(sentence, labelName, tokenizer string, labelId int) *Sent
 	tokens, _ := tkz.TokenizeStr(strings.ToLower(sentence), tokenizer)
 
 	for pos, token := range tokens {
-		if !stopList.IsStopWord[token] {
+		if !stopList.IsStopWord[token] || len(token) > 3 {
 			var byteSeq = []float64{}
 			for _, byt := range []byte(token) {
 				byteSeq = append(byteSeq, float64(byt))
@@ -127,6 +123,40 @@ func NewPredictionSentenceBucket(sentence, tokenizer string) *SentenceBucket {
 			}
 			bucket.Bucket = append(bucket.Bucket, setBytesPosSeq(float64(pos), byteSeq))
 		}
+	}
+	if Bias {
+		bucket.setBiasAggregateByteValue()
+	} else {
+		bucket.setAggregateByteValue()
+	}
+	return bucket
+}
+
+func NewWordBucket(word, labelName string, labelId int) *WordBucket {
+	bucket := &WordBucket{
+		Word:      word,
+		LabelName: labelName,
+		LabelID:   labelId,
+	}
+
+	for pos, chr := range []byte(word) {
+		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
+	}
+	if Bias {
+		bucket.setBiasAggregateByteValue()
+	} else {
+		bucket.setAggregateByteValue()
+	}
+	return bucket
+}
+
+func NewPredictionWordBucket(word string) *WordBucket {
+	bucket := &WordBucket{
+		Word: word,
+	}
+
+	for pos, chr := range []byte(word) {
+		bucket.Bucket = append(bucket.Bucket, setBytePosChar(float64(pos), float64(chr)))
 	}
 	if Bias {
 		bucket.setBiasAggregateByteValue()

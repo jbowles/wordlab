@@ -4,34 +4,17 @@
  */
 package wordlab
 
-// Labels should be distributed pretty far apart for knn algorithms to get accuracy.
-// For example, in one implementation, shifting the iota (103,206,412,824,...,13184) instead of incrementing by 1 (1,2,3,4,...,8) boosted
-// accuracy from low 70% to 99%
-/*
 const (
-	AvailID = 1 << iota * 103
-	BookID
-	CancelID
-	CancelForbidID
-	CreditDataID
-	creditDeclineID
-	CreditServiceID
-	UnexpectID
-)
-*/
-
-const (
-	AvailID         = iota //= 20
-	BookID                 //= 60
-	CancelID               //= 100
-	CancelForbidID         //= 140
-	CreditDataID           //= 180
-	creditDeclineID        //= 220
-	CreditServiceID        //= 260
-	UnexpectID             //= 300
+	AvailID         = 20
+	BookID          = 60
+	CancelID        = 100
+	CancelForbidID  = 140
+	CreditDataID    = 180
+	creditDeclineID = 220
+	CreditServiceID = 260
+	UnexpectID      = 300
 )
 
-var HotelRootFpCSV = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data_csv/"
 var HotelRootFpTXT = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data_txt/"
 var HotelErrorIDTableDirs = map[int][]string{
 	AvailID:         {"availability", HotelRootFpTXT + "availability_error", "datasets/tmpavail.txt"},
@@ -44,6 +27,7 @@ var HotelErrorIDTableDirs = map[int][]string{
 	UnexpectID:      {"unexpectedresponse", HotelRootFpTXT + "unexpected_response_error", "datasets/tmpunex.txt"},
 }
 
+var HotelRootFpCSV = "/Users/jbowles/x/training_data/partner_fusion_trained_errors/training_data_csv/"
 var HotelErrorIDTableFiles = map[int][]string{
 	AvailID:         {"availability_error", HotelRootFpCSV + "availability_error/availability_error.csv", "datasets/tmpavail.csv"},
 	BookID:          {"booking_error", HotelRootFpCSV + "booking_error/booking_error.csv", "datasets/tmpbook.csv"},
@@ -65,6 +49,7 @@ var HotelErrorNameTable = map[string]int{
 	"unexpected_response_error": UnexpectID,
 }
 
+/*
 func AveragedLabelId() int {
 	sum := int(0)
 	for id, _ := range HotelErrorIDTableFiles {
@@ -72,6 +57,7 @@ func AveragedLabelId() int {
 	}
 	return (sum / (len(HotelErrorIDTableFiles) * len(HotelErrorIDTableFiles)))
 }
+*/
 
 var wordModelHeaders = CreateByteRangeHeaders(ByteRangeWordModelLimit)
 var SentModelHeaders = CreateByteRangeHeaders(ByteRangeSentModelLimit)
@@ -79,6 +65,26 @@ var wordsBucketNameLast = "wordlab_bucket_hotel_error_words_labelnamelast_train.
 var wordsBucketIdFirst = "wordlab_bucket_hotel_error_words_labelidfirst_train.csv"
 var sentsBucketNameLast = "wordlab_bucket_hotel_error_sents_labelnamelast_train.csv"
 var sentsBucketIdFirst = "wordlab_bucket_hotel_error_sents_labelidfirst_train.csv"
+
+var termBucketNameLast = "wordlab_bucket_hotel_error_terms_labelnamelast_train.csv"
+
+func BuildHotelProviderDataKnnTermLabelNameLast(root_datafp string) {
+	CsvCreateFileWithHeaders(true, (root_datafp + termBucketNameLast), []string{"term", "index", "dotproduct", "label"})
+
+	for id, table := range HotelErrorIDTableFiles {
+		// add sentence label name last
+		smodel := &TermModel{
+			InputFilePath:  table[1],
+			OutputFilePath: root_datafp + termBucketNameLast,
+			LabelName:      table[0],
+			Tokenizer:      "unicode",
+			DocNum:         id,
+			ForceOverwrite: true,
+		}
+
+		smodel.ParseInputWriteOut()
+	}
+}
 
 func BuildHotelProviderDataKnnLabelNameLast(root_datafp string) {
 	new_word_hdrs := append(wordModelHeaders, "labelname")
@@ -96,7 +102,7 @@ func BuildHotelProviderDataKnnLabelNameLast(root_datafp string) {
 			InputFilePath:  table[1],
 			OutputFilePath: root_datafp + wordsBucketNameLast,
 			LabelName:      table[0],
-			Tokenizer:      "unicode",
+			Tokenizer:      "lex",
 			LabelID:        id,
 			ForceOverwrite: true,
 			LabelFirst:     false,
@@ -110,7 +116,7 @@ func BuildHotelProviderDataKnnLabelNameLast(root_datafp string) {
 			InputFilePath:  table[1],
 			OutputFilePath: root_datafp + sentsBucketNameLast,
 			LabelName:      table[0],
-			Tokenizer:      "unicode",
+			Tokenizer:      "lex",
 			LabelID:        id,
 			ForceOverwrite: true,
 			LabelFirst:     false,

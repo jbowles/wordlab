@@ -10494,7 +10494,6 @@ discussion of that subject .   For example ,  we can distinguish quite clearly
 between : 
 
  " Stephen Hawking has concluded that black holes give off radiation " 
-and
  " John Searle has concluded that it is impossible to build an intelligent
  computer " 
 
@@ -10597,7 +10596,6 @@ when they ask questions like :
 Similarly ,  politicians often ask loaded questions such as : 
 
  " How long will this EC interference in our affairs be allowed to continue ?  " 
-or
  " Does the Chancellor plan two more years of ruinous privatization ?  " 
 
 IGNORATIO ELENCHI
@@ -10636,7 +10634,6 @@ the meaning is changed by altering which parts of a statement are
 emphasized .   For example ,  consider : 
 
  " We should not speak ILL of our friends " 
-and
  " We should not speak ill of our FRIENDS " 
 
 FALLACIES OF COMPOSITION
@@ -12529,7 +12526,6 @@ five schools of law  ( 4 sunni and 1 jaffari )  ,  can be levelled against
 muslim or non - muslims ,  both within and outside dar - al - islam .  I do
 not know if apostasy  ( when accompanied by active ,  persistent ,  and
 open hostility to Islam )  falls into this category of the law .  I do know
-that
 historically ,  apostasy has very rarely been punished at all ,  let alone
 by the death penalty . 
 
@@ -24663,7 +24659,6 @@ entail more than simply reading a verse and its corresponding hadith .
 If the reflection is for the sake of increasing personal piety ,  then each
 person has his own level of understanding and there is no harm in that . 
 However ,  if the reflection is in order to decide matters that pertain to
-the
 State ,  to the gestation of laws and rulings ,  to the gestation of society , 
 the dispensing of justice ,  the guidance of the community ,  then there 
 are certain minimum requirements of understanding that one 
@@ -27455,7 +27450,6 @@ Thanks ,
 
 john chadwick
 johnchad @ triton . unm . edu
-or
 From :  jennyb @ carina . unm . edu  ( Jenny Ballmann ) 
 Subject :  Re :  Another request for Darwin Fish
 
@@ -28172,7 +28166,6 @@ modified according to
   e [ n ]  ( A )     =    e [ n - 1 ]  ( A )   *   -  -  -  -  -  -  -  -     =    e [ n - 1 ]  ( A )   *  m
                               P ( H ) 
 
-and
 
                             P ( H  |  B ) 
   e [ n ]  ( B )     =    e [ n - 1 ]  ( B )   *   -  -  -  -  -  -  -  -     =    e [ n - 1 ]  ( B )   *  2m
@@ -28187,7 +28180,6 @@ Thus whatever the initial values of the estimates ,  after n heads ,  we have
                  n
   e [ n ]  ( A )     =    m  e [ 0 ]  ( A ) 
 
-and
                     n
   e [ n ]  ( B )     =     ( 2m )   e [ 0 ]  ( B )  , 
 
@@ -32017,7 +32009,6 @@ the matter of the book was effectively restricted to short video bytes
 showing
 the dramatic highlights of Muslim demonstrations .  For every twenty or so
 newspaper ,  magazine articles ,  interviews etc .  supporting Rushdie ,  there
-would
 appear one Muslim voice .  This person was usually selected based on how
 dramatic and incoherent he was ,  not on his knowledge of Islam or the
 situation at the time .  This approx .  twenty to one ratio continued
@@ -32092,11 +32083,9 @@ within a larger secular culture ,  such that the secular principles and laws
 had precedence over the laws of Islam  -  then I have no doubt that Islam
 would then be thought to have a good  " image "   ( Principally because it would
 by and large reflect the secular image )  .  A  " good image "  usually means  "  be
-more
 like me "  . 
 
 Your attempts at TOTALLY exonerating Rushdie reflect exactly the attitude
-that
 resulted in the polarization brought about by the crisis . 
 
  >   In Iran ,  the situation was monitored for many
@@ -32112,7 +32101,6 @@ resulted in the polarization brought about by the crisis .
  >  death threats ,  and killing publishers ,  NO ONE WOULD HAVE HEARD OF IT . 
 
 The fatwa came later  -  much later .  If Rushdie didn ' t mouth off so much in
-the
 media ,  the fuss would have died down  -  no one would have been killed ,  no
 fatwa would have been passed  -  the whole episode would have fizzled away . 
 Subject :  Re :  Who has read Rushdie ' s  _ The Satanic Verses _  ? 
@@ -35577,7 +35565,6 @@ it is
 sense . 
 
 Secondly ,  repeatability can also take many forms .   It is really just
-the
 requirement that independent observers be able to verify the results . 
 The
 observation of a fossil is  ' repeatable '  ,  since any qualified observer

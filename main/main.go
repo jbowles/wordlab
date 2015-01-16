@@ -21,15 +21,15 @@ func main() {
 	//pipeWildDirOpt()
 	//streamWildDirOpt()
 	//streamHotelErrDirOpt()
-	//HotelData()
+	HotelData()
 	//wordlab.AmitKnnValidate()
-	buildIt()
+	//buildIt()
 }
 
 func streamHotelErrDirOpt() {
 	runtime.GOMAXPROCS(8)
 	//var space []ir.VecField
-	tkzr := "lex"
+	tkzr := "whitespace"
 	for docNum, value := range wordlab.HotelErrorIDTableDirs {
 		go wordlab.StreamTokenizedDirectory(value[1], value[2], tkzr, docNum, time.Minute*90)
 	}
@@ -115,8 +115,9 @@ func printHotelTable() {
 
 func HotelData() {
 	var root_datafp = "datasets/"
-	wordlab.BuildHotelProviderDataKnnLabelIdFirst(root_datafp)
-	wordlab.BuildHotelProviderDataKnnLabelNameLast(root_datafp)
+	wordlab.BuildHotelProviderDataKnnTermLabelNameLast(root_datafp)
+	//wordlab.BuildHotelProviderDataKnnLabelIdFirst(root_datafp)
+	//wordlab.BuildHotelProviderDataKnnLabelNameLast(root_datafp)
 }
 
 // for word model... yck

@@ -36,6 +36,7 @@ func PipeFileTokens(readFile, tokenizer string) pipe.Pipe {
 		scanner := bufio.NewScanner(file)
 		bufferCache := new(bytes.Buffer)
 		byteLining := []byte{'\n'} //newline padding bytes for writing to file
+		//can lines
 		for scanner.Scan() {
 			bufferCache.Write(
 				tkz.TokenizeBytes(scanner.Bytes(), tkzType).Bytes,
@@ -138,7 +139,8 @@ func WriteAttributes(vf ir.VecField) {
 			var bucketWrite []string
 			//bucketWrite = append(bucketWrite, fmt.Sprintf("%v", vector))
 			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.BloomFilter))
-			bucketWrite = append(bucketWrite, fmt.Sprintf("%f", aggByteVal(word)))
+			//bucketWrite = append(bucketWrite, fmt.Sprintf("%f", aggByteVal(word)))
+			bucketWrite = append(bucketWrite, word)
 			bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.Index))
 			bucketWrite = append(bucketWrite, fmt.Sprintf("%G", vector.DotProduct))
 			//bucketWrite = append(bucketWrite, fmt.Sprintf("%d", vector.DocNum))

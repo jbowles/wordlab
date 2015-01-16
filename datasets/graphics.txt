@@ -12654,7 +12654,6 @@ Muchado ,  ricardo @ rchland . vnet . ibm . com writes :
  > those for c . s . m . a  :  -  )   ) 
  > 
  >    I was in Chicago in the last consumer electronics show ,  and Apple had
-a
  > booth there .   I walked by ,  and they were showing real - time video capture
  > using a  ( Radious or SuperMac ?  )  card to digitize and make right on the
 spot
@@ -12672,7 +12671,6 @@ back quite
  > 3xx  ( 320 in y I think )  and the frame rate decreased enough to notice
 that it
  > wasn ' t 30fps  ( or about 30fps )  anymore .   It dropped to like 15 fps .   Then
-he
  > increased it just a bit more ,  and it dropped to 10 <  -  > 12 fps .  
 
 Quicktime does a much better job of playing back movies at size than it
@@ -12698,9 +12696,7 @@ performance ,  though the Quadras will be a bit faster due to marginally
 faster clock speeds and somewhat different architecture . 
 
  >    Well ,  I spoiled his claim so to say ,  since a 68040 Quadra Mac was
-having
  > a little bit of trouble .   And this wasn ' t even from the hardisk !   This
-was
  > from memory ! 
  > 
  >    Could it be that you saw either a newer version of quicktime ,  or some
@@ -14202,7 +14198,6 @@ There is a library of map projections in :
 
     charon . er . usgs . gov
 
-in
 
      / pub / PROJ . 4 . 1 . 3 . tar . Z
 From :  ricky @ watson . ibm . com  ( Rick Turner ) 
@@ -16416,7 +16411,6 @@ is sponsoring :
 			Manufacture of composites
 
 May 18 ,  1993
-at
  The University of Akron
   Akron ,  Ohio
 
@@ -16524,7 +16518,6 @@ In article  < 5103 @ moscom . com >  mz @ moscom . com  ( Matthew Zenkar )  writ
  >  :  is found in the root dir of the drive cview is on . 
  > 
  > I posted this as well before the cview  " expert "  .   Apparently ,  he thought
-he
  > knew better . 
  > 
  > Matthew Zenkar
@@ -18295,9 +18288,7 @@ responsibility to secure any necessary permissions and / or liscenses .
 	 _  _  _ Yes  _  _  _ No  My piece contains images ,  audio ,  or video components . 
                If yes : 
 	               _  _  _ Yes  _  _  _ No  I have the necessary rights and / or permissions
-to
                              use the images ,  audio ,  or video components in
-my
                              piece . 
 
 Conference presentation release :   By signing this form ,  I grant SIGGRAPH ' 93

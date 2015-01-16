@@ -31666,7 +31666,6 @@ No ,  not really .  It may be that your winfile . ini has gotten corrupted for
 some unknown reason .  Have you tried re - creating it by either
 1 . exiting filemanager with the save setting option on when the status bar
 is visible , 
-or
 2 . double clicking on the Control menu ( the one with minimize and maximize
 in in )  when everything looks proper ? 
 
@@ -32377,7 +32376,6 @@ communicating
 between VB and MSACCESS using DDE .  The answers I received at
 that time
 allowed me to get a prototype of my project working .  However , 
-during
 this process I have come up with new problems . 
 
 1 )  There seems to be a limit of 255 characters for a DDE Topic
