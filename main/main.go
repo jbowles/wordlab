@@ -14,12 +14,11 @@ import (
 )
 
 func main() {
-	//pipeFile()
-	//pipeDir()
-	//pipeDirOpt()
+	pipeFile()
+	pipeDir()
+	pipeDirOpt()
 	streamDirOpt()
-	//HotelData()
-	//wordlab.AmitKnnValidate()
+	HotelData()
 }
 
 func streamDirOpt() {

@@ -3,17 +3,10 @@ package wordlab
 import (
 	"bufio"
 	"bytes"
-	//"io/ioutil"
-	//"encoding/binary"
-	//"encoding/csv"
-	//"encoding/gob"
-	//"fmt"
-	//ir "github.com/jbowles/nlpt_ir"
-	tkz "github.com/jbowles/nlpt_tkz"
+	tkz "github.com/jbowles/nlpt-tkz"
 	"gopkg.in/pipe.v2"
 	"io"
 	"os"
-	//"path/filepath"
 	"time"
 )
 

@@ -3,7 +3,7 @@ package wordlab
 import (
 	"bufio"
 	"fmt"
-	tkz "github.com/jbowles/nlpt_tkz"
+	tkz "github.com/jbowles/nlpt-tkz"
 	"io/ioutil"
 	"log"
 	"os"

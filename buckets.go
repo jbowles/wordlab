@@ -1,7 +1,7 @@
 package wordlab
 
 import (
-	tkz "github.com/jbowles/nlpt_tkz"
+	tkz "github.com/jbowles/nlpt-tkz"
 	"hash/fnv"
 	"strconv"
 	"strings"

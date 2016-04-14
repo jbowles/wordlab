@@ -11,8 +11,8 @@ import (
 	"encoding/csv"
 	//"encoding/gob"
 	"fmt"
-	ir "github.com/jbowles/nlpt_ir"
-	tkz "github.com/jbowles/nlpt_tkz"
+	"github.com/jbowles/nlpt-ir"
+	tkz "github.com/jbowles/nlpt-tkz"
 	"gopkg.in/pipe.v2"
 	"io"
 	"os"
@@ -86,7 +86,7 @@ func PipeTokenizedDirectoryOpt(directoryPath, fileWrite, tkzType string, timeout
 
 			/// *************** DEBUGGING ****************
 			//Log.Debug("FILE: %v\n Tokenized %v\n\n", file, output)
-			vecField, err := ir.DecodeVectorStreamBytes(output)
+			vecField, err := nlptir.DecodeVectorStreamBytes(output)
 			Log.Debug("FILE: %v\nDecodeVectorStream %v, %v\n\n", file, err, vecField)
 			/// *************** DEBUGGING ****************
 		}
@@ -104,7 +104,7 @@ func AppendFileEncodedVectorField(path string, perm os.FileMode) pipe.Pipe {
 		if inErr != nil {
 			Log.Error("%s", inErr)
 		}
-		vecField, err := ir.DecodeVectorStreamBytes(inBytes)
+		vecField, err := nlptir.DecodeVectorStreamBytes(inBytes)
 		for _, value := range vecField.Space {
 			for _, vector := range value {
 				file.WriteString(fmt.Sprintf("%v %v %v", vector.Index, vector.DotProduct, vector.DocNum) + "\n")
@@ -133,7 +133,7 @@ func ReadDocBuildTfidf(path string) pipe.Pipe {
 		scanner := bufio.NewScanner(file)
 		//defer file.Close()
 		bufferCache := new(bytes.Buffer)
-		vf := &ir.VecField{}
+		vf := &nlptir.VecField{}
 		for scanner.Scan() {
 			vf.Compose([]string{scanner.Text()}, 1)
 		}
@@ -155,7 +155,7 @@ func BuildIndex(docs []string) {
 }
 */
 
-func WriteAttributes(vf *ir.VecField) {
+func WriteAttributes(vf *nlptir.VecField) {
 	csvfile, writer := fileWriterPipe("attributes.csv")
 	defer csvfile.Close()
 
@@ -314,7 +314,7 @@ func PipeTokenizedDirectory(directoryPath, fileWrite, tkzType string, timeoutLim
 		if err != nil {
 			Log.Error("pipe.CombinedOutputTimeout: %s %s", file, err)
 		}
-		vecField, err := ir.DecodeVectorStreamBytes(output)
+		vecField, err := nlptir.DecodeVectorStreamBytes(output)
 		Log.Warning("DecodeVectorStream %v, %v\n", vecField, err)
 	}
 	Log.Notice("read %d files for directory %s", len(handler.FullFilePaths), handler.DirName)

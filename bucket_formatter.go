@@ -3,7 +3,7 @@ package wordlab
 import (
 	"encoding/csv"
 	"fmt"
-	tkz "github.com/jbowles/nlpt_tkz"
+	tkz "github.com/jbowles/nlpt-tkz"
 	"io"
 	"os"
 	"strconv"
